@@ -145,22 +145,36 @@ beta.moment <- function(alpha, beta, k, centered){
   }
   solution
 }
-beta.pop.data <- tibble(alpha = c(2, 5, 5, 0.5),
-                        
-                        beta = c(5, 5, 2, 0.5),
-                        
-                        mean = c(beta.moment(2,5,1,F)$value, beta.moment(5,5,1,F)$value, 
-                                 beta.moment(5,2,1,F)$value, beta.moment(0.5,0.5,1,F)$value),
-                        
-                        var = c(beta.moment(2,5,2,T)$value, beta.moment(5,5,2,T)$value,
-                                beta.moment(5,2,2,T)$value, beta.moment(0.5,0.5,2,T)$value),
-                        
-                        skew = c(beta.moment(2,5,3,T)$value/((beta.moment(2,5,2,T)$value)^(3/2)),
-                                 beta.moment(5,5,3,T)$value/((beta.moment(5,5,2,T)$value)^(3/2)),
-                                 beta.moment(5,2,3,T)$value/((beta.moment(5,2,2,T)$value)^(3/2)),
-                                 beta.moment(0.5,0.5,3,T)$value/((beta.moment(0.5, 0.5,2,T)$value)^(3/2))),
-                        kurt = c((beta.moment(2,5,4,T)$value/(beta.moment(2,5,2,T)$value)^2) - 3, 
-                                 (beta.moment(5,5,4,T)$value/(beta.moment(5,5,2,T)$value)^2) - 3,
-                                 (beta.moment(5,2,4,T)$value/(beta.moment(5,2,2,T)$value)^2) - 3,
-                                 (beta.moment(0.5,0.5,4,T)$value/(beta.moment(0.5,0.5,2,T)$value)^2) - 3))
+# beta.pop.data <- tibble(alpha = c(2, 5, 5, 0.5),
+#                         
+#                         beta = c(5, 5, 2, 0.5),
+#                         
+#                         mean = c(beta.moment(2,5,1,F)$value, beta.moment(5,5,1,F)$value, 
+#                                  beta.moment(5,2,1,F)$value, beta.moment(0.5,0.5,1,F)$value),
+#                         
+#                         var = c(beta.moment(2,5,2,T)$value, beta.moment(5,5,2,T)$value,
+#                                 beta.moment(5,2,2,T)$value, beta.moment(0.5,0.5,2,T)$value),
+#                         
+#                         skew = c(beta.moment(2,5,3,T)$value/((beta.moment(2,5,2,T)$value)^(3/2)),
+#                                  beta.moment(5,5,3,T)$value/((beta.moment(5,5,2,T)$value)^(3/2)),
+#                                  beta.moment(5,2,3,T)$value/((beta.moment(5,2,2,T)$value)^(3/2)),
+#                                  beta.moment(0.5,0.5,3,T)$value/((beta.moment(0.5, 0.5,2,T)$value)^(3/2))),
+#                         kurt = c((beta.moment(2,5,4,T)$value/((beta.moment(2,5,2,T)$value)^2)) - 3, 
+#                                  (beta.moment(5,5,4,T)$value/((beta.moment(5,5,2,T)$value)^2)) - 3,
+#                                  (beta.moment(5,2,4,T)$value/((beta.moment(5,2,2,T)$value)^2)) - 3,
+#                                  (beta.moment(0.5,0.5,4,T)$value/((beta.moment(0.5,0.5,2,T)$value)^2)) - 3))
 
+beta1.pop.data <- tibble(alpha = 2,
+                         beta = 5, 
+                         mean = beta.moment(2,5,1,F)$value, 
+                         skew = (beta.moment(2,5,3,T)$value)/((beta.moment(2,5,2,T)$value)^(3/2)),
+                         kurt = ((beta.moment(2,5,4,T)$value)/((beta.moment(2,5,2,T)$value)^2)) -3
+                         )
+# Task 3
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 2
+beta <- 5
+beta.sample <- rbeta(n = sample.size,  # sample size
+                     shape1 = alpha,   # alpha parameter
+                     shape2 = beta)    # beta parameter
