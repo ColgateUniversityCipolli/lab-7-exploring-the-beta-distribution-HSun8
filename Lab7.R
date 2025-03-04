@@ -15,6 +15,8 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 beta1.data = tibble(
+  alpha = alpha, 
+  beta = beta,
   mean = alpha/(alpha+beta),
   var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
@@ -43,6 +45,8 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 beta2.data = tibble(
+  alpha = alpha, 
+  beta = beta,
   mean = alpha/(alpha+beta),
   var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
@@ -71,6 +75,8 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 beta3.data = tibble(
+  alpha = alpha,
+  beta = beta,
   mean = alpha/(alpha+beta),
   var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
@@ -99,6 +105,8 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 beta4.data = tibble(
+  alpha = alpha,
+  beta = beta,
   mean = alpha/(alpha+beta),
   var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
@@ -116,4 +124,43 @@ beta4 <- ggplot(data= q1.fig.dat)+                                              
   scale_color_manual("", values = c("black", "grey"))+                 # change colors
   theme(legend.position = "bottom")                                    # move legend to bottom
 beta4
+
+
+beta.data = rbind(beta1.data, beta2.data, beta3.data, beta4.data)
+# Task 2
+# compute moments
+
+#beta.moment()
+beta.moment <- function(alpha, beta, k, centered){
+  if (centered == T){
+    #integrand1 <- function(x) {x * dbeta(x, alpha, beta)}
+    #uncentered <- integrate(integrand1, lower = 0, upper = 1)
+    mean <- (alpha)/(alpha + beta)
+    integrand2 <- function(x) {(x-mean)^k * dbeta(x, alpha, beta)}
+    solution <- integrate(integrand2, lower = 0, upper = 1)
+  }
+  if(centered == F){
+    integrand <- function(x) {x^k * dbeta(x, alpha, beta)}
+    solution <- integrate(integrand, lower = 0, upper = 1)
+  }
+  solution
+}
+beta.pop.data <- tibble(alpha = c(2, 5, 5, 0.5),
+                        
+                        beta = c(5, 5, 2, 0.5),
+                        
+                        mean = c(beta.moment(2,5,1,F)$value, beta.moment(5,5,1,F)$value, 
+                                 beta.moment(5,2,1,F)$value, beta.moment(0.5,0.5,1,F)$value),
+                        
+                        var = c(beta.moment(2,5,2,T)$value, beta.moment(5,5,2,T)$value,
+                                beta.moment(5,2,2,T)$value, beta.moment(0.5,0.5,2,T)$value),
+                        
+                        skew = c(beta.moment(2,5,3,T)$value/((beta.moment(2,5,2,T)$value)^(3/2)),
+                                 beta.moment(5,5,3,T)$value/((beta.moment(5,5,2,T)$value)^(3/2)),
+                                 beta.moment(5,2,3,T)$value/((beta.moment(5,2,2,T)$value)^(3/2)),
+                                 beta.moment(0.5,0.5,3,T)$value/((beta.moment(0.5, 0.5,2,T)$value)^(3/2))),
+                        kurt = c((beta.moment(2,5,4,T)$value/(beta.moment(2,5,2,T)$value)^2) - 3, 
+                                 (beta.moment(5,5,4,T)$value/(beta.moment(5,5,2,T)$value)^2) - 3,
+                                 (beta.moment(5,2,4,T)$value/(beta.moment(5,2,2,T)$value)^2) - 3,
+                                 (beta.moment(0.5,0.5,4,T)$value/(beta.moment(0.5,0.5,2,T)$value)^2) - 3))
 
