@@ -14,13 +14,14 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
          norm.pdf = dnorm(x,                                    # Gaussian distribution with
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+# summarize 
 beta1.data = tibble(
   alpha = alpha, 
   beta = beta,
   mean = alpha/(alpha+beta),
   variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+  e.kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
     ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
@@ -146,24 +147,6 @@ beta.moment <- function(alpha, beta, k, centered){
   }
   solution
 }
-# beta.pop.data <- tibble(alpha = c(2, 5, 5, 0.5),
-#                         
-#                         beta = c(5, 5, 2, 0.5),
-#                         
-#                         mean = c(beta.moment(2,5,1,F)$value, beta.moment(5,5,1,F)$value, 
-#                                  beta.moment(5,2,1,F)$value, beta.moment(0.5,0.5,1,F)$value),
-#                         
-#                         var = c(beta.moment(2,5,2,T)$value, beta.moment(5,5,2,T)$value,
-#                                 beta.moment(5,2,2,T)$value, beta.moment(0.5,0.5,2,T)$value),
-#                         
-#                         skew = c(beta.moment(2,5,3,T)$value/((beta.moment(2,5,2,T)$value)^(3/2)),
-#                                  beta.moment(5,5,3,T)$value/((beta.moment(5,5,2,T)$value)^(3/2)),
-#                                  beta.moment(5,2,3,T)$value/((beta.moment(5,2,2,T)$value)^(3/2)),
-#                                  beta.moment(0.5,0.5,3,T)$value/((beta.moment(0.5, 0.5,2,T)$value)^(3/2))),
-#                         kurt = c((beta.moment(2,5,4,T)$value/((beta.moment(2,5,2,T)$value)^2)) - 3, 
-#                                  (beta.moment(5,5,4,T)$value/((beta.moment(5,5,2,T)$value)^2)) - 3,
-#                                  (beta.moment(5,2,4,T)$value/((beta.moment(5,2,2,T)$value)^2)) - 3,
-#                                  (beta.moment(0.5,0.5,4,T)$value/((beta.moment(0.5,0.5,2,T)$value)^2)) - 3))
 
 beta1.pop.data <- tibble(alpha = 2,
                          beta = 5, 
@@ -180,11 +163,11 @@ set.seed(7272) # Set seed so we all get the same results.
 sample.size <- 500 # Specify sample details
 alpha <- 2
 beta <- 5
-beta.sample <- rbeta(n = sample.size,  # sample size
+beta.sample1 <- rbeta(n = sample.size,  # sample size
                      shape1 = alpha,   # alpha parameter
                      shape2 = beta)    # beta parameter
 # numerical summary
-numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample), 
+numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample1), 
                               mean = mean(sample.data),
                               variance = var(sample.data),
                               skewness = skewness(sample.data),
@@ -195,41 +178,149 @@ b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 
-ggplot(tibble(sample.data = beta.sample), aes(x=sample.data))+
+ggplot(tibble(sample.data = beta.sample1), aes(x=sample.data))+
   geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
   geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
   geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(2,5)"))+
   xlab("x")
 
+# beta(5,5)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 5
+beta <- 5
+beta.sample2 <- rbeta(n = sample.size,  # sample size
+                     shape1 = alpha,   # alpha parameter
+                     shape2 = beta)    # beta parameter
+# numerical summary
+numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample2), 
+                                    mean = mean(sample.data),
+                                    variance = var(sample.data),
+                                    skewness = skewness(sample.data),
+                                    kurtosis = kurtosis(sample.data))
+b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+         norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                          mean = alpha/(alpha+beta),            # same mean and variance
+                          sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+
+ggplot(tibble(sample.data = beta.sample2), aes(x=sample.data))+
+  geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
+  geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
+  geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(5,5)"))+
+  xlab("x")
+
+# beta(5,2)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 5
+beta <- 2
+beta.sample3 <- rbeta(n = sample.size,  # sample size
+                     shape1 = alpha,   # alpha parameter
+                     shape2 = beta)    # beta parameter
+# numerical summary
+numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample3), 
+                                    mean = mean(sample.data),
+                                    variance = var(sample.data),
+                                    skewness = skewness(sample.data),
+                                    kurtosis = kurtosis(sample.data))
+b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+         norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                          mean = alpha/(alpha+beta),            # same mean and variance
+                          sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+
+ggplot(tibble(sample.data = beta.sample3), aes(x=sample.data))+
+  geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
+  geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
+  geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(5,2)"))+
+  xlab("x")
+
+# beta(0.5,0.5)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 0.5
+beta <- 0.5
+beta.sample4 <- rbeta(n = sample.size,  # sample size
+                     shape1 = alpha,   # alpha parameter
+                     shape2 = beta)    # beta parameter
+# numerical summary
+numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample4), 
+                                    mean = mean(sample.data),
+                                    variance = var(sample.data),
+                                    skewness = skewness(sample.data),
+                                    kurtosis = kurtosis(sample.data))
+b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+         norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                          mean = alpha/(alpha+beta),            # same mean and variance
+                          sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+
+ggplot(tibble(sample.data = beta.sample4), aes(x=sample.data))+
+  geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
+  geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
+  geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(0.5,0.5)"))+
+  xlab("x")
+
 # Task 4 
 library(cumstats)
-beta.cumstats <- tibble(n=(1:length(beta.sample)), 
-                            mean=cummean((beta.sample)), 
-                            variance=cumvar((beta.sample)),
-                            skewness=cumskew((beta.sample)), 
-                            kurtosis=cumkurt((beta.sample)))
+beta1.cumstats <- tibble(n=(1:length(beta.sample1)), 
+                            mean=cummean((beta.sample1)), 
+                            variance=cumvar((beta.sample1)),
+                            skewness=cumskew((beta.sample1)), 
+                            kurtosis=cumkurt((beta.sample1)))
 # kurtosis vs excess kurtosis?
-cum.mean.plot <- ggplot(beta.cumstats)+
+cum.mean.plot <- ggplot(beta1.cumstats)+
   geom_line(aes(x=n, y = mean))+
-  geom_hline(beta1.data, yintercept = mean)
+  geom_hline(data=beta1.data, aes(yintercept = mean))  
 cum.mean.plot
 
-cum.var.plot <- ggplot(beta.cumstats) +
+cum.var.plot <- ggplot(beta1.cumstats) +
   geom_line(aes(x=n, y = variance))+
-  geom_hline(beta1.data, yintercept = variance)
+  geom_hline(data=beta1.data, aes(yintercept = variance))
 cum.var.plot
 
-cum.skew.plot <- ggplot(beta.cumstats) +
+cum.skew.plot <- ggplot(beta1.cumstats) +
   geom_line(aes(x=n, y = skewness))+
-  geom_hline(beta1.data, yintercept = skewness)
+  geom_hline(data=beta1.data, aes(yintercept = skewness))
 cum.skew.plot
 
 # not right...
-cum.kurt.plot <- ggplot(beta.cumstats) +
-  geom_line(aes(x=n, y = kurtosis))+
-  geom_hline(beta1.data, yintercept = kurtosis)
+cum.kurt.plot <- ggplot(beta1.cumstats) +
+  geom_line(aes(x=n, y = kurtosis)) +
+  geom_hline(data=beta1.data, aes(yintercept = e.kurtosis + 3))
 cum.kurt.plot
-
 
 library(patchwork)
 cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
+
+# for loop
+alpha <- 2
+beta <- 5
+sample.size <- 500
+for (i in 2:50){
+  set.seed(7272 + i)
+  beta.sample.p4 <- rbeta(n = sample.size,  # sample size
+                        shape1 = alpha,   # alpha parameter
+                        shape2 = beta)    # beta parameter
+  betap4.cumstats <- tibble(n=(1:length(beta.sample.p4)), 
+                           mean=cummean((beta.sample.p4)), 
+                           variance=cumvar((beta.sample.p4)),
+                           skewness=cumskew((beta.sample.p4)), 
+                           kurtosis=cumkurt((beta.sample.p4)))
+  
+  cum.mean.plot <- cum.mean.plot + 
+    geom_line(data = betap4.cumstats, aes(x=n, y=mean), color = i)
+  
+  cum.var.plot <- cum.var.plot + 
+    geom_line(data = betap4.cumstats, aes(x=n, y=variance), color = i)
+  
+  cum.skew.plot <- cum.skew.plot + 
+    geom_line(data = betap4.cumstats, aes(x=n, y=skewness), color = i)
+  
+  cum.kurt.plot <- cum.kurt.plot + 
+    geom_line(data = betap4.cumstats, aes(x=n, y=kurtosis), color = i)
+  
+}
+cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
+
