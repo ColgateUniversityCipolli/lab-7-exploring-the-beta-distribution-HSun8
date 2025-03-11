@@ -172,6 +172,10 @@ beta1.pop.data <- tibble(alpha = 2,
                          kurt = ((beta.moment(2,5,4,T)$value)/((beta.moment(2,5,2,T)$value)^2)) -3
 )
 # Task 3
+library(e1071)
+# for kurtosis and skewness
+
+# beta(2,5)
 set.seed(7272) # Set seed so we all get the same results.
 sample.size <- 500 # Specify sample details
 alpha <- 2
@@ -179,3 +183,20 @@ beta <- 5
 beta.sample <- rbeta(n = sample.size,  # sample size
                      shape1 = alpha,   # alpha parameter
                      shape2 = beta)    # beta parameter
+# numerical summary
+numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample), 
+                              mean = mean(sample.data),
+                              variance = var(sample.data),
+                              skewness = skewness(sample.data),
+                              kurtosis = kurtosis(sample.data))
+q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+         norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                          mean = alpha/(alpha+beta),            # same mean and variance
+                          sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+
+ggplot(tibble(sample.data = beta.sample), aes(x=sample.data))+
+  geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
+  geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
+  geom_line(data = q1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(2,5)"))+
+  xlab("x")
