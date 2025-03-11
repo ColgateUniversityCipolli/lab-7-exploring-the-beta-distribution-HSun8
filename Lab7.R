@@ -324,3 +324,48 @@ for (i in 2:50){
 }
 cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
 
+
+# task 5 
+# how can we model the variation? 
+alpha <- 2
+beta <- 5
+sample.size <- 500
+
+stats.p5 = tibble(mean = numeric(),
+                  variance = numeric(),
+                  skewness = numeric(),
+                  kurtosis = numeric())
+  
+for (i in 1:1000){
+  set.seed(7272 + i)
+  beta.sample.p5 <- rbeta(n = sample.size,  # sample size
+                          shape1 = alpha,   # alpha parameter
+                          shape2 = beta)    # beta parameter
+  mean=mean((beta.sample.p5)) 
+  variance=var((beta.sample.p5))
+  skewness=skew((beta.sample.p5))
+  kurtosis=kurtosis((beta.sample.p5))
+  
+  stats.p5 <- bind_rows(stats.p5, tibble(mean, variance, skewness, kurtosis))
+}
+
+# histogram
+a <- ggplot(stats.p5)+
+  geom_histogram(aes(x = mean, y=after_stat(density)))+
+  geom_density(aes(x=mean))
+
+eu <- ggplot(stats.p5)+
+  geom_histogram(aes(x = variance, y=after_stat(density)))+
+  geom_density(aes(x=variance))
+
+g <- ggplot(stats.p5)+
+  geom_histogram(aes(x = skewness, y=after_stat(density)))+
+  geom_density(aes(x=skewness))
+
+h <- ggplot(stats.p5)+
+  geom_histogram(aes(x = kurtosis, y=after_stat(density)))+
+  geom_density(aes(x=kurtosis))
+
+a / eu | g / h
+
+# looks like normal distribution.... 
