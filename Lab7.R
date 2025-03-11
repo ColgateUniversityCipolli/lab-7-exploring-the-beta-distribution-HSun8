@@ -18,9 +18,9 @@ beta1.data = tibble(
   alpha = alpha, 
   beta = beta,
   mean = alpha/(alpha+beta),
-  var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
-  skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurt = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+  variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
+  skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
+  kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
     ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
@@ -189,7 +189,7 @@ numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample),
                               variance = var(sample.data),
                               skewness = skewness(sample.data),
                               kurtosis = kurtosis(sample.data))
-q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
   mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
          norm.pdf = dnorm(x,                                    # Gaussian distribution with
                           mean = alpha/(alpha+beta),            # same mean and variance
@@ -198,5 +198,38 @@ q1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
 ggplot(tibble(sample.data = beta.sample), aes(x=sample.data))+
   geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
   geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
-  geom_line(data = q1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(2,5)"))+
+  geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(2,5)"))+
   xlab("x")
+
+# Task 4 
+library(cumstats)
+beta.cumstats <- tibble(n=(1:length(beta.sample)), 
+                            mean=cummean((beta.sample)), 
+                            variance=cumvar((beta.sample)),
+                            skewness=cumskew((beta.sample)), 
+                            kurtosis=cumkurt((beta.sample)))
+# kurtosis vs excess kurtosis?
+cum.mean.plot <- ggplot(beta.cumstats)+
+  geom_line(aes(x=n, y = mean))+
+  geom_hline(beta1.data, yintercept = mean)
+cum.mean.plot
+
+cum.var.plot <- ggplot(beta.cumstats) +
+  geom_line(aes(x=n, y = variance))+
+  geom_hline(beta1.data, yintercept = variance)
+cum.var.plot
+
+cum.skew.plot <- ggplot(beta.cumstats) +
+  geom_line(aes(x=n, y = skewness))+
+  geom_hline(beta1.data, yintercept = skewness)
+cum.skew.plot
+
+# not right...
+cum.kurt.plot <- ggplot(beta.cumstats) +
+  geom_line(aes(x=n, y = kurtosis))+
+  geom_hline(beta1.data, yintercept = kurtosis)
+cum.kurt.plot
+
+
+library(patchwork)
+cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
