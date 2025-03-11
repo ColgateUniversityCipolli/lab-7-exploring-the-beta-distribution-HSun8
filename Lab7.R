@@ -20,7 +20,8 @@ beta1.data = tibble(
   mean = alpha/(alpha+beta),
   var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
   skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurt = (6*(alpha-beta)^2*(alpha+beta+1)-(alpha*beta*(alpha+beta+2)))/((alpha*beta*(alpha+beta+2)*(alpha+beta+3)))
+  kurt = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+    ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
 
@@ -169,7 +170,7 @@ beta1.pop.data <- tibble(alpha = 2,
                          mean = beta.moment(2,5,1,F)$value, 
                          skew = (beta.moment(2,5,3,T)$value)/((beta.moment(2,5,2,T)$value)^(3/2)),
                          kurt = ((beta.moment(2,5,4,T)$value)/((beta.moment(2,5,2,T)$value)^2)) -3
-                         )
+)
 # Task 3
 set.seed(7272) # Set seed so we all get the same results.
 sample.size <- 500 # Specify sample details
