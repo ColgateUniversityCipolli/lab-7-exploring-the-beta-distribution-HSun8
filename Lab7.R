@@ -6,7 +6,7 @@
 library(tidyverse)
 library(e1071) # kurtosis and skewness (task 3)
 library(cumstats) # task 4
-library(patchwork)
+library(patchwork) # combine plots
 
 ################################################################################
 # Task 1
@@ -162,7 +162,8 @@ task3.numsummary <- function(alpha, beta){
                                       skewness = skewness(sample.data),
                                       # excess kurtosis = kurtosis - 3
                                       e.kurtosis = kurtosis(sample.data) - 3)
-  task3.numericalsummary
+  # return beta.sample, as it is used in task 4
+  list(beta.sample, task3.numericalsummary)
 }
 
 # function to create histogram + density for sample size = 500
@@ -191,10 +192,10 @@ task3.histogram <- function(alpha, beta){
 }
 
 # numerical summary
-case1.sample = task3.numsummary(2,5)
-case2.sample = task3.numsummary(5,5)
-case3.sample = task3.numsummary(5,2)
-case4.sample = task3.numsummary(0.5,0.5)
+case1.sample = task3.numsummary(2,5)[[2]]
+case2.sample = task3.numsummary(5,5)[[2]]
+case3.sample = task3.numsummary(5,2)[[2]]
+case4.sample = task3.numsummary(0.5,0.5)[[2]]
 
 # histograms
 case1.histogram = task3.histogram(2,5)
@@ -206,72 +207,82 @@ case4.histogram = task3.histogram(0.5,0.5)
 task3.histograms <- case1.histogram / case2.histogram | 
                     case3.histogram / case4.histogram
 
+################################################################################
 # Task 4 
-library(cumstats)
-beta.cumstats <- tibble(n=(1:length(beta.sample1)), 
-                            mean=cummean((beta.sample1)), 
-                            variance=cumvar((beta.sample1)),
-                            skewness=cumskew((beta.sample1)), 
+# is sample size important?
+beta.task4.sample = task3.numsummary(2,5)[[1]]
+# compute cumaltive nume sums for beta(2, 5)
+beta.cumstats.test <- tibble(n=(1:length(beta.task4.sample)), 
+                            mean=cummean((beta.task4.sample)), 
+                            variance=cumvar((beta.task4.sample)),
+                            skewness=cumskew((beta.task4.sample)), 
                          # NOTE: this is kurtosis, not excess kurtosis
                          # in order to transform into e.kurtosis,
                          # e.kurt =  kurt - 3
-                            kurtosis=cumkurt((beta.sample1)))
-# kurtosis vs excess kurtosis?
-cum.mean.plot <- ggplot(beta1.cumstats)+
+                            kurtosis=cumkurt((beta.task4.sample)))
+
+# cum mean plot
+cum.mean.plot <- ggplot(beta.cumstats.test)+
   geom_line(aes(x=n, y = mean))+
-  geom_hline(data=beta1.data, aes(yintercept = mean))  
+  geom_hline(data=case1.data, aes(yintercept = mean))  
 cum.mean.plot
 
-cum.var.plot <- ggplot(beta1.cumstats) +
+# cum var plot
+cum.var.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = variance))+
-  geom_hline(data=beta1.data, aes(yintercept = variance))
+  geom_hline(data=case1.data, aes(yintercept = variance))
 cum.var.plot
 
-cum.skew.plot <- ggplot(beta1.cumstats) +
+# cum skew plot
+cum.skew.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = skewness))+
-  geom_hline(data=beta1.data, aes(yintercept = skewness))
+  geom_hline(data=case1.data, aes(yintercept = skewness))
 cum.skew.plot
 
-cum.kurt.plot <- ggplot(beta1.cumstats) +
+# cum kurtosis (not excess kurtosis)
+cum.kurt.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = kurtosis)) +
-  geom_hline(data=beta1.data, aes(yintercept = e.kurtosis + 3))
+  # kurt = e.kurt + 3
+  geom_hline(data=case1.data, aes(yintercept = e.kurtosis + 3))
 cum.kurt.plot
 
-library(patchwork)
-cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
+# test 
+# cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
 
 # for loop
-alpha <- 2
-beta <- 5
+# sample size = 500
 sample.size <- 500
 for (i in 2:50){
   set.seed(7272 + i)
-  beta.sample.p4 <- rbeta(n = sample.size,  # sample size
-                        shape1 = alpha,   # alpha parameter
-                        shape2 = beta)    # beta parameter
-  betap4.cumstats <- tibble(n=(1:length(beta.sample.p4)), 
-                           mean=cummean((beta.sample.p4)), 
-                           variance=cumvar((beta.sample.p4)),
-                           skewness=cumskew((beta.sample.p4)), 
-                           kurtosis=cumkurt((beta.sample.p4)))
-  
+  # generate new sampe each iteration
+  beta.sample.loop <- beta.sample <- rbeta(n = sample.size,  # sample size
+                                           shape1 = alpha,   # alpha parameter
+                                           shape2 = beta)    # beta parameter
+  beta.cumstats.f <- tibble(n=(1:length(beta.sample.loop)), 
+                           mean=cummean((beta.sample.loop)), 
+                           variance=cumvar((beta.sample.loop)),
+                           skewness=cumskew((beta.sample.loop)), 
+                           kurtosis=cumkurt((beta.sample.loop)))
+  # update cum mean
   cum.mean.plot <- cum.mean.plot + 
-    geom_line(data = betap4.cumstats, aes(x=n, y=mean), color = i)
-  
+    geom_line(data = beta.cumstats.f, aes(x=n, y=mean), color = i)
+  # update cum var 
   cum.var.plot <- cum.var.plot + 
-    geom_line(data = betap4.cumstats, aes(x=n, y=variance), color = i)
-  
+    geom_line(data = beta.cumstats.f, aes(x=n, y=variance), color = i)
+  # update cum skew
   cum.skew.plot <- cum.skew.plot + 
-    geom_line(data = betap4.cumstats, aes(x=n, y=skewness), color = i)
-  
+    geom_line(data = beta.cumstats.f, aes(x=n, y=skewness), color = i)
+  # update cum kurtosis
   cum.kurt.plot <- cum.kurt.plot + 
-    geom_line(data = betap4.cumstats, aes(x=n, y=kurtosis), color = i)
-  
+    geom_line(data = beta.cumstats.f, aes(x=n, y=kurtosis), color = i)
 }
-cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
 
+# combine plots with patchwork
 
-# task 5 
+cum.plots <- cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
+
+################################################################################
+# Task 5 
 # how can we model the variation? 
 alpha <- 2
 beta <- 5
