@@ -192,7 +192,7 @@ beta1 / beta2 | beta3 / beta4
 # Task 2
 # compute moments
 
-#beta.moment()
+# beta.moment()
 beta.moment <- function(alpha, beta, k, centered){
   if (centered == T){
     #integrand1 <- function(x) {x * dbeta(x, alpha, beta)}
@@ -208,15 +208,93 @@ beta.moment <- function(alpha, beta, k, centered){
   solution
 }
 
-beta1.pop.data <- tibble(alpha = 2,
+# compute for each case
+case1.pop.data <- tibble(alpha = 2,
                          beta = 5, 
-                         mean = beta.moment(2,5,1,F)$value, 
-                         skew = (beta.moment(2,5,3,T)$value)/((beta.moment(2,5,2,T)$value)^(3/2)),
-                         kurt = ((beta.moment(2,5,4,T)$value)/((beta.moment(2,5,2,T)$value)^2)) -3
+                         mean = beta.moment(2,5,1,F)$value,
+                         variance = beta.moment(2,5,2,T)$value,
+                         skewness = (beta.moment(2,5,3,T)$value)/((beta.moment(2,5,2,T)$value)^(3/2)),
+                         e.kurtosis = ((beta.moment(2,5,4,T)$value)/((beta.moment(2,5,2,T)$value)^2))-3
+)
+
+case2.pop.data <- tibble(alpha = 5,
+                         beta = 5, 
+                         mean = beta.moment(5,5,1,F)$value, 
+                         variance = beta.moment(5,5,2,T)$value,
+                         skewness = (beta.moment(5,5,3,T)$value)/((beta.moment(5,5,2,T)$value)^(3/2)),
+                         e.kurt = ((beta.moment(5,5,4,T)$value)/((beta.moment(5,5,2,T)$value)^2))-3
+)
+
+case3.pop.data <- tibble(alpha = 5,
+                         beta = 2, 
+                         mean = beta.moment(5,2,1,F)$value, 
+                         variance = beta.moment(5,2,2,T)$value,
+                         skewness = (beta.moment(5,2,3,T)$value)/((beta.moment(5,2,2,T)$value)^(3/2)),
+                         e.kurtosis = ((beta.moment(5,2,4,T)$value)/((beta.moment(5,2,2,T)$value)^2))-3
+)
+
+case4.pop.data <- tibble(alpha = 0.5,
+                         beta = 0.5, 
+                         mean = beta.moment(0.5,0.5,1,F)$value, 
+                         variance = beta.moment(0.5,0.5,2,T)$value,
+                         skewness = (beta.moment(0.5,0.5,3,T)$value)/((beta.moment(0.5,0.5,2,T)$value)^(3/2)),
+                         e.kurtosis = ((beta.moment(0.5,0.5,4,T)$value)/((beta.moment(0.5,0.5,2,T)$value)^2))-3
 )
 # Task 3
 library(e1071)
 # for kurtosis and skewness
+# data summaries for all cases
+
+task3.numsummary <- function(alpha, beta){
+  set.seed(7272) # Set seed so we all get the same results.
+  sample.size <- 500 # Specify sample details
+  
+  beta.sample <- rbeta(n = sample.size,  # sample size
+                        shape1 = alpha,   # alpha parameter
+                        shape2 = beta)    # beta parameter
+  task3.numericalsummary = summarize(tibble(sample.data = beta.sample), 
+                                      mean = mean(sample.data),
+                                      variance = var(sample.data),
+                                      skewness = skewness(sample.data),
+                                      # excess kurtosis = kurtosis - 3
+                                      e.kurtosis = kurtosis(sample.data) - 3)
+  task3.numericalsummary
+}
+
+task3.histogram <- function(alpha, beta){
+  set.seed(7272) # Set seed so we all get the same results.
+  sample.size <- 500 # Specify sample details
+  
+  fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+    mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+           norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                            mean = alpha/(alpha+beta),            # same mean and variance
+                            sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+  
+  beta.sample <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+  beta.pdf.name = paste("Beta(", as.character(alpha), ", ", as.character(beta), ")",  sep = "")
+  histogram <- ggplot(tibble(sample.data = beta.sample), aes(x=sample.data))+
+    geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
+    geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
+    geom_line(data = fig.dat, aes(x = x, y = beta.pdf, color = beta.pdf.name))+
+    xlab("x")
+  histogram
+}
+
+# numerical summary
+case1.sample = task3.numsummary(2,5)
+case2.sample = task3.numsummary(5,5)
+case3.sample = task3.numsummary(5,2)
+case4.sample = task3.numsummary(0.5,0.5)
+
+# histograms
+case1.histogram = task3.histogram(2,5)
+case2.histogram = task3.histogram(5,5)
+case3.histogram = task3.histogram(5,2)
+case4.histogram = task3.histogram(0.5,0.5)
+
 
 # beta(2,5)
 set.seed(7272) # Set seed so we all get the same results.
@@ -231,19 +309,20 @@ numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample1),
                               mean = mean(sample.data),
                               variance = var(sample.data),
                               skewness = skewness(sample.data),
-                              kurtosis = kurtosis(sample.data))
+                              kurtosis = kurtosis(sample.data) - 3)
 b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
   mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
          norm.pdf = dnorm(x,                                    # Gaussian distribution with
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 
-ggplot(tibble(sample.data = beta.sample1), aes(x=sample.data))+
+aeugh <- ggplot(tibble(sample.data = beta.sample1), aes(x=sample.data))+
   geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
   geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
   geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(2,5)"))+
   xlab("x")
 
+aeugh + case1.histogram
 # beta(5,5)
 set.seed(7272) # Set seed so we all get the same results.
 sample.size <- 500 # Specify sample details
@@ -253,7 +332,7 @@ beta.sample2 <- rbeta(n = sample.size,  # sample size
                      shape1 = alpha,   # alpha parameter
                      shape2 = beta)    # beta parameter
 # numerical summary
-numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample2), 
+numerical.summary.beta2 = summarize(tibble(sample.data = beta.sample2), 
                                     mean = mean(sample.data),
                                     variance = var(sample.data),
                                     skewness = skewness(sample.data),
@@ -264,7 +343,7 @@ b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a gri
                           mean = alpha/(alpha+beta),            # same mean and variance
                           sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
 
-ggplot(tibble(sample.data = beta.sample2), aes(x=sample.data))+
+testing <- ggplot(tibble(sample.data = beta.sample2), aes(x=sample.data))+
   geom_histogram(aes(y=after_stat(density), color = "sample.data histogram"))+
   geom_density(aes(color = "sample.data"), key_glyph = draw_key_path)+
   geom_line(data = b1.fig.dat, aes(x = x, y = beta.pdf, color ="Beta(5,5)"))+
@@ -305,11 +384,11 @@ beta.sample4 <- rbeta(n = sample.size,  # sample size
                      shape1 = alpha,   # alpha parameter
                      shape2 = beta)    # beta parameter
 # numerical summary
-numerical.summary.beta1 = summarize(tibble(sample.data = beta.sample4), 
+numerical.summary.beta4 = summarize(tibble(sample.data = beta.sample4), 
                                     mean = mean(sample.data),
                                     variance = var(sample.data),
                                     skewness = skewness(sample.data),
-                                    kurtosis = kurtosis(sample.data))
+                                    kurtosis = kurtosis(sample.data) - 3)
 b1.fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
   mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
          norm.pdf = dnorm(x,                                    # Gaussian distribution with
