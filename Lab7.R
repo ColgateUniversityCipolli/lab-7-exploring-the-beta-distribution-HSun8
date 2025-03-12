@@ -1,9 +1,65 @@
 # Henry Sun 
 # Lab 7 
 
+# all libraries
+library(tidyverse)
+
 # Task 1
 # plot beta distributions
-library(tidyverse)
+task1.plotting <- function(alpha, beta){
+  fig.dat <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+    mutate(beta.pdf = dbeta(x, alpha, beta),                      # compute the beta PDF
+           norm.pdf = dnorm(x,                                    # Gaussian distribution with
+                            mean = alpha/(alpha+beta),            # same mean and variance
+                            sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
+  beta.pdf.name = paste("Beta(", as.character(alpha), ", ", as.character(beta), ")",  sep = "")
+  norm.pdf.name = paste("Gaussian(", as.character(signif(alpha/(alpha+beta), 3)), ", ", 
+                        as.character(signif((sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1))))^2 ,3)), ")", sep = "")
+  
+  task1.plot <- ggplot(data= fig.dat)+                                     # specify data
+      geom_line(aes(x=x, y=beta.pdf, color=beta.pdf.name)) +                 # plot beta dist
+      geom_line(aes(x=x, y=norm.pdf, color= norm.pdf.name)) +  # plot guassian dist
+      geom_hline(yintercept=0)+                                            # plot x axis
+      theme_bw()+                                                          # change theme
+      xlab("x")+                                                           # label x axis
+      ylab("Density")+                                                     # label y axis
+      scale_color_manual("", values = c("black", "grey"))+                 # change colors
+      theme(legend.position = "bottom")                                    # move legend to bottom
+  task1.plot
+}
+# summarize data (mean, variance, skewness, excess kurtosis)
+task1.summarize <- function(alpha, beta){
+  task1.data = tibble(
+    alpha = alpha, 
+    beta = beta,
+    mean = alpha/(alpha+beta),
+    variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
+    skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
+    e.kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+      ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
+  )
+  task1.data
+}
+
+# beta(2,5)
+case1.plot = task1.plotting(2,5)
+case1.data = task1.summarize(2,5)
+
+# beta(5,5)
+case2.plot = task1.plotting(5,5)
+case2.data = task1.summarize(5,5)
+
+# beta(5,2)
+case3.plot = task1.plotting(5,2)
+case3.data = task1.summarize(5,2)
+
+# beta(0.5, 0.5)
+case4.plot = task1.plotting(0.5,0.5)
+case4.data = task1.summarize(0.5,0.5)
+
+task1.summary = rbind(case1.data, case2.data, case3.data, case4.data)
+
+(case1.plot / case2.plot) | (case3.plot / case4.plot)
 
 # a = 2, b = 5
 alpha <- 2
@@ -50,9 +106,10 @@ beta2.data = tibble(
   alpha = alpha, 
   beta = beta,
   mean = alpha/(alpha+beta),
-  var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
-  skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurt = (6*(alpha-beta)^2*(alpha+beta+1)-(alpha*beta*(alpha+beta+2)))/((alpha*beta*(alpha+beta+2)*(alpha+beta+3)))
+  variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
+  skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
+  e.kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+    ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
 
@@ -80,9 +137,10 @@ beta3.data = tibble(
   alpha = alpha,
   beta = beta,
   mean = alpha/(alpha+beta),
-  var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
-  skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurt = (6*(alpha-beta)^2*(alpha+beta+1)-(alpha*beta*(alpha+beta+2)))/((alpha*beta*(alpha+beta+2)*(alpha+beta+3)))
+  variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
+  skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
+  e.kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+    ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
 
@@ -110,9 +168,10 @@ beta4.data = tibble(
   alpha = alpha,
   beta = beta,
   mean = alpha/(alpha+beta),
-  var = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
-  skew = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
-  kurt = (6*(alpha-beta)^2*(alpha+beta+1)-(alpha*beta*(alpha+beta+2)))/((alpha*beta*(alpha+beta+2)*(alpha+beta+3)))
+  variance = (alpha*beta)/((alpha+beta)^2 *(alpha+beta+1)),
+  skewness = (2*(beta-alpha)*sqrt(alpha+beta+1))/((alpha + beta + 2)*sqrt(alpha*beta)),
+  e.kurtosis = (6*((alpha-beta)^2 * (alpha+beta+1) - (alpha*beta)*(alpha+beta+2))) / 
+    ((alpha*beta) * (alpha+beta+2) * (alpha+beta+3))
 )
 
 
@@ -127,8 +186,9 @@ beta4 <- ggplot(data= q1.fig.dat)+                                              
   theme(legend.position = "bottom")                                    # move legend to bottom
 beta4
 
+beta.summary = rbind(beta1.data, beta2.data, beta3.data, beta4.data)
 
-beta.data = rbind(beta1.data, beta2.data, beta3.data, beta4.data)
+beta1 / beta2 | beta3 / beta4
 # Task 2
 # compute moments
 
@@ -343,7 +403,7 @@ for (i in 1:1000){
                           shape2 = beta)    # beta parameter
   mean=mean((beta.sample.p5)) 
   variance=var((beta.sample.p5))
-  skewness=skew((beta.sample.p5))
+  skewness=skewness((beta.sample.p5))
   kurtosis=kurtosis((beta.sample.p5))
   
   stats.p5 <- bind_rows(stats.p5, tibble(mean, variance, skewness, kurtosis))
@@ -369,3 +429,4 @@ h <- ggplot(stats.p5)+
 a / eu | g / h
 
 # looks like normal distribution.... 
+
