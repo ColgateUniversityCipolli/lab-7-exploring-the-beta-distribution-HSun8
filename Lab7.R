@@ -321,26 +321,29 @@ for (i in 1:1000){
 mean.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = mean, y=after_stat(density), 
                      color = "Mean Distribution Histogram"))+
-  geom_density(aes(x=mean, color = "Mean Density"))
+  geom_density(aes(x=mean, color = "Mean Density"), 
+               key_glyph = draw_key_path)
 # histogram + density for variance
 variance.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = variance, y=after_stat(density),
                      color = "Variance Distribution Histogram"))+
-  geom_density(aes(x=variance, color = "Variance Density"))
+  geom_density(aes(x=variance, color = "Variance Density"), 
+               key_glyph = draw_key_path)
 # histogram + density for skewness
 skewness.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = skewness, y=after_stat(density),
                      color = "Skewness Distribution Histogram"))+
-  geom_density(aes(x=skewness, color = "Skewness Density"))
+  geom_density(aes(x=skewness, color = "Skewness Density"), 
+               key_glyph = draw_key_path)
 # histogram + density for kurtosis
 kurtosis.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = kurtosis, y=after_stat(density),
                      color = "Kurtosis Distribution Histogram"))+
-  geom_density(aes(x=kurtosis, color = "Kurtosis Density"))
+  geom_density(aes(x=kurtosis, color = "Kurtosis Density"), 
+               key_glyph = draw_key_path)
 
 # combine plots
 stats.dist <- mean.dist / variance.dist | skewness.dist / kurtosis.dist
 stats.dist
 
 # looks like normal distribution.... 
-
