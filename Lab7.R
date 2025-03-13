@@ -210,8 +210,11 @@ task3.histograms <- case1.histogram / case2.histogram |
 ################################################################################
 # Task 4 
 # is sample size important?
+
+# beta(2,5) sample from before
 beta.task4.sample = task3.numsummary(2,5)[[1]]
-# compute cumaltive nume sums for beta(2, 5)
+
+# compute cumulative numsums for given sample
 beta.cumstats.test <- tibble(n=(1:length(beta.task4.sample)), 
                             mean=cummean((beta.task4.sample)), 
                             variance=cumvar((beta.task4.sample)),
@@ -221,109 +224,123 @@ beta.cumstats.test <- tibble(n=(1:length(beta.task4.sample)),
                          # e.kurt =  kurt - 3
                             kurtosis=cumkurt((beta.task4.sample)))
 
-# cum mean plot
+# cum mean plot 
 cum.mean.plot <- ggplot(beta.cumstats.test)+
   geom_line(aes(x=n, y = mean))+
   geom_hline(data=case1.data, aes(yintercept = mean))  
-cum.mean.plot
+#cum.mean.plot
 
 # cum var plot
 cum.var.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = variance))+
   geom_hline(data=case1.data, aes(yintercept = variance))
-cum.var.plot
+#cum.var.plot
 
-# cum skew plot
+# cum skewness plot
 cum.skew.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = skewness))+
   geom_hline(data=case1.data, aes(yintercept = skewness))
-cum.skew.plot
+#cum.skew.plot
 
-# cum kurtosis (not excess kurtosis)
+# cum kurtosis plot (not excess kurtosis)
 cum.kurt.plot <- ggplot(beta.cumstats.test) +
   geom_line(aes(x=n, y = kurtosis)) +
-  # kurt = e.kurt + 3
+  # e.kurt turned into kurt
   geom_hline(data=case1.data, aes(yintercept = e.kurtosis + 3))
-cum.kurt.plot
+#cum.kurt.plot
 
-# test 
-# cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
+#testing
+#cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
 
 # for loop
 # sample size = 500
+alpha <- 2
+beta <- 5
 sample.size <- 500
 for (i in 2:50){
   set.seed(7272 + i)
-  # generate new sampe each iteration
-  beta.sample.loop <- beta.sample <- rbeta(n = sample.size,  # sample size
-                                           shape1 = alpha,   # alpha parameter
-                                           shape2 = beta)    # beta parameter
+  # create new sample in each iteration
+  beta.sample.loop <- rbeta(n = sample.size,  # sample size
+                            shape1 = alpha,   # alpha parameter
+                            shape2 = beta)    # beta parameter
+  # create tibble for new sample
   beta.cumstats.f <- tibble(n=(1:length(beta.sample.loop)), 
                            mean=cummean((beta.sample.loop)), 
                            variance=cumvar((beta.sample.loop)),
                            skewness=cumskew((beta.sample.loop)), 
                            kurtosis=cumkurt((beta.sample.loop)))
-  # update cum mean
+  # update cum mean plot
   cum.mean.plot <- cum.mean.plot + 
     geom_line(data = beta.cumstats.f, aes(x=n, y=mean), color = i)
-  # update cum var 
+  # update cum var plot
   cum.var.plot <- cum.var.plot + 
     geom_line(data = beta.cumstats.f, aes(x=n, y=variance), color = i)
-  # update cum skew
+  # update cum skew plot
   cum.skew.plot <- cum.skew.plot + 
     geom_line(data = beta.cumstats.f, aes(x=n, y=skewness), color = i)
-  # update cum kurtosis
+  # update cum kurtosis plot
   cum.kurt.plot <- cum.kurt.plot + 
     geom_line(data = beta.cumstats.f, aes(x=n, y=kurtosis), color = i)
+  
 }
 
-# combine plots with patchwork
-
+# combine all plots using patchwork
 cum.plots <- cum.mean.plot / cum.var.plot | cum.skew.plot / cum.kurt.plot
 
 ################################################################################
 # Task 5 
 # how can we model the variation? 
+
+# simulate new data from beta(2,5) dist
 alpha <- 2
 beta <- 5
+
+# same sample size
 sample.size <- 500
 
-stats.p5 = tibble(mean = numeric(),
+# create tibble for summary
+stats.task5 = tibble(mean = numeric(),
                   variance = numeric(),
                   skewness = numeric(),
                   kurtosis = numeric())
   
 for (i in 1:1000){
   set.seed(7272 + i)
-  beta.sample.p5 <- rbeta(n = sample.size,  # sample size
+  beta.sample.task5 <- rbeta(n = sample.size,  # sample size
                           shape1 = alpha,   # alpha parameter
                           shape2 = beta)    # beta parameter
-  mean=mean((beta.sample.p5)) 
-  variance=var((beta.sample.p5))
-  skewness=skewness((beta.sample.p5))
-  kurtosis=kurtosis((beta.sample.p5))
+  mean=mean((beta.sample.task5)) 
+  variance=var((beta.sample.task5))
+  skewness=skewness((beta.sample.task5))
+  kurtosis=kurtosis((beta.sample.task5))
   
-  stats.p5 <- bind_rows(stats.p5, tibble(mean, variance, skewness, kurtosis))
+  stats.task5 <- bind_rows(stats.task5, tibble(mean, variance, skewness, kurtosis))
 }
 
-# histogram
-a <- ggplot(stats.p5)+
-  geom_histogram(aes(x = mean, y=after_stat(density)))+
-  geom_density(aes(x=mean))
+# histogram + density for mean
+mean.dist <- ggplot(stats.task5)+
+  geom_histogram(aes(x = mean, y=after_stat(density), 
+                     color = "Mean Distribution Histogram"))+
+  geom_density(aes(x=mean, color = "Mean Density"))
+# histogram + density for variance
+variance.dist <- ggplot(stats.task5)+
+  geom_histogram(aes(x = variance, y=after_stat(density),
+                     color = "Variance Distribution Histogram"))+
+  geom_density(aes(x=variance, color = "Variance Density"))
+# histogram + density for skewness
+skewness.dist <- ggplot(stats.task5)+
+  geom_histogram(aes(x = skewness, y=after_stat(density),
+                     color = "Skewness Distribution Histogram"))+
+  geom_density(aes(x=skewness, color = "Skewness Density"))
+# histogram + density for kurtosis
+kurtosis.dist <- ggplot(stats.task5)+
+  geom_histogram(aes(x = kurtosis, y=after_stat(density),
+                     color = "Kurtosis Distribution Histogram"))+
+  geom_density(aes(x=kurtosis, color = "Kurtosis Density"))
 
-eu <- ggplot(stats.p5)+
-  geom_histogram(aes(x = variance, y=after_stat(density)))+
-  geom_density(aes(x=variance))
-
-g <- ggplot(stats.p5)+
-  geom_histogram(aes(x = skewness, y=after_stat(density)))+
-  geom_density(aes(x=skewness))
-
-h <- ggplot(stats.p5)+
-  geom_histogram(aes(x = kurtosis, y=after_stat(density)))+
-  geom_density(aes(x=kurtosis))
-
-a / eu | g / h
+# combine plots
+stats.dist <- mean.dist / variance.dist | skewness.dist / kurtosis.dist
+stats.dist
 
 # looks like normal distribution.... 
 
