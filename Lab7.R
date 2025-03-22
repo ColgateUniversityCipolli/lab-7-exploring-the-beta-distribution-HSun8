@@ -347,3 +347,22 @@ stats.dist <- mean.dist / variance.dist | skewness.dist / kurtosis.dist
 stats.dist
 
 # looks like normal distribution.... 
+
+# Task 5 
+# collect and clean data
+
+# collect data
+# select only 2022 data
+death.dat = read_csv("API_SP.DYN.CDRT.IN_DS2_en_csv_v2_76451.csv") |>
+  select(-...69) |>
+  select("Country Name", "Country Code", "Indicator Name", "Indicator Code",
+         "2022") |>
+  rename(deaths.per.1k = "2022") |>
+  mutate(death.prop = deaths.per.1k/1000)
+
+death.prop.data = death.dat |>
+  select(death.prop)
+
+
+  
+  
