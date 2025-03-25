@@ -7,6 +7,7 @@ library(tidyverse)
 library(e1071) # kurtosis and skewness (task 3)
 library(cumstats) # task 4
 library(patchwork) # combine plots
+library(nleqslv) # MOM + MLE
 
 ################################################################################
 # Task 1
@@ -87,12 +88,12 @@ beta.moment <- function(alpha, beta, k, centered){
   if (centered == T){
     mean <- (alpha)/(alpha + beta)
     integrand2 <- function(x) {(x-mean)^k * dbeta(x, alpha, beta)}
-    solution <- integrate(integrand2, lower = 0, upper = 1)
+    solution <- integrate(integrand2, lower = 0, upper = 1, subdivisions = 1000L)
   }
   # uncentered moment
   if(centered == F){
     integrand <- function(x) {x^k * dbeta(x, alpha, beta)}
-    solution <- integrate(integrand, lower = 0, upper = 1)
+    solution <- integrate(integrand, lower = 0, upper = 1, subdivisions = 1000L)
   }
   solution
 }
@@ -348,7 +349,7 @@ stats.dist
 
 # looks like normal distribution.... 
 
-# Task 5 
+# Task 6 
 # collect and clean data
 
 # collect data
@@ -360,9 +361,39 @@ death.dat = read_csv("API_SP.DYN.CDRT.IN_DS2_en_csv_v2_76451.csv") |>
   rename(deaths.per.1k = "2022") |>
   mutate(death.prop = deaths.per.1k/1000)
 
-death.prop.data = death.dat |>
-  select(death.prop)
+# Task 7
+# what are alpha and beta?
 
+# MOM
+mom.beta <- function(data, par){
+  # alpha = exp(par[1])
+  alpha = par[1]
+  #beta = exp(par[2])
+  beta = par[2]
+  # pop moments
+  #EX1 = beta.moment(alpha, beta, 1, centered = F)$value
+  EX1 = alpha/(alpha + beta)
+  #EX2 = beta.moment(alpha, beta, 2, centered = F)$value
+  EX2 = (alpha * (alpha + 1))/((alpha + beta + 1) * (alpha + beta))
+    #beta.moment(alpha, beta, 2, centered = F)$value
+  # sample moments
+  m1 = mean(data, na.rm = T)
+  m2 = mean(data^2, na.rm = T)
+  
+  return(c(EX1-m1, EX2-m2))
+}
 
-  
-  
+MOMs <- (nleqslv(x= c(1, 1),
+        fn = mom.beta,
+        data = death.dat$death.prop))
+#exp(MOMs$x)
+MOMs
+
+llbeta <- function(data, par){
+  alpha = par[1]
+  beta = par[2]
+  llpois = sum(ln(dbeta()))
+}
+death.prop.plot <- ggplot(death.dat) +
+  geom_histogram(aes(x=death.prop, y = after_stat(density)), bins = 35)
+death.prop.plot  
