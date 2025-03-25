@@ -387,13 +387,61 @@ MOMs <- (nleqslv(x= c(1, 1),
         fn = mom.beta,
         data = death.dat$death.prop))
 #exp(MOMs$x)
-MOMs
+MOMs.alpha = MOMs$x[1]
+MOMs.beta = MOMs$x[2]
 
-llbeta <- function(data, par){
+llbeta <- function(data, par, neg = F){
   alpha = par[1]
   beta = par[2]
-  llpois = sum(ln(dbeta()))
+  llfxn = sum(log(dbeta(x=data, shape1 = alpha, shape2 = beta)), na.rm=T)
+  
+  return(ifelse(neg, -llfxn, llfxn))
 }
+MLEs <- optim(fn = llbeta,
+              par = c(1,1),
+              data = death.dat$death.prop,
+              neg=T)
+MLEs.alpha = MLEs$par[1]
+MLEs.beta = MLEs$par[2]
+
+
+deaths.beta.pdf <- tibble(x = seq(0, 0.025, length.out=1000))|>   # generate a grid of points
+  mutate(moms.pdf = dbeta(x, shape1 = MOMs.alpha, shape2 = MOMs.beta),
+         mles.pdf = dbeta(x, shape1 = MLEs.alpha, shape2 = MLEs.beta)) # compute the beta PDF
+
 death.prop.plot <- ggplot(death.dat) +
-  geom_histogram(aes(x=death.prop, y = after_stat(density)), bins = 35)
+  geom_histogram(aes(x=death.prop, y = after_stat(density), color = "Data"), bins = 40) + 
+  geom_line(data=deaths.beta.pdf, aes(x=x, y=moms.pdf, color = "MOM PDF")) +
+  geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF"))
 death.prop.plot  
+
+# Task 8 
+# which estimators should we use
+
+task8.alpha = 8
+task8.beta = 950
+task8.data = tibble(moms.alpha = numeric(),
+                    moms.beta = numeric(),
+                    mles.alpha = numeric(),
+                    mles.beta = numeric())
+sample.size = 266
+for(i in 1:1000){
+  set.seed(7272 + i)
+  sample.moms = (nleqslv(x= c(1, 1),
+                          fn = mom.beta,
+                          data = death.dat$death.prop))
+  moms.alpha = sample.moms$x[1]
+  moms.beta = sample.moms$x[2]
+  sample.mles = optim(fn = llbeta,
+                      par = c(1,1),
+                      data = death.dat$death.prop,
+                      neg=T)
+  mles.alpha = sample.mles$par[1]
+  mles.beta = sample.mles$par[2]
+  variance=var((beta.sample.task5))
+  skewness=skewness((beta.sample.task5))
+  kurtosis=kurtosis((beta.sample.task5))
+  
+  task8.data <- bind_rows(task8.data, tibble(moms.alpha, moms.beta, 
+                                               mles.alpha, mles.beta))
+}
