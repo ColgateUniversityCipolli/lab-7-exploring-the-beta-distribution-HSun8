@@ -425,16 +425,20 @@ task8.data = tibble(moms.alpha = numeric(),
                     mles.alpha = numeric(),
                     mles.beta = numeric())
 sample.size = 266
+# generate new samples
 for(i in 1:1000){
   set.seed(7272 + i)
+  beta.sample.task8 <- rbeta(n=sample.size,
+                             shape1 = task8.alpha,
+                             shape2 = task8.beta)
   sample.moms = (nleqslv(x= c(1, 1),
                           fn = mom.beta,
-                          data = death.dat$death.prop))
+                          data = beta.sample.task8))
   moms.alpha = sample.moms$x[1]
   moms.beta = sample.moms$x[2]
   sample.mles = optim(fn = llbeta,
                       par = c(1,1),
-                      data = death.dat$death.prop,
+                      data = beta.sample.task8,
                       neg=T)
   mles.alpha = sample.mles$par[1]
   mles.beta = sample.mles$par[2]
@@ -445,3 +449,55 @@ for(i in 1:1000){
   task8.data <- bind_rows(task8.data, tibble(moms.alpha, moms.beta, 
                                                mles.alpha, mles.beta))
 }
+# plot estimated parameters
+alphas.mom <- ggplot(data=task8.data)+
+  geom_density(aes(x=moms.alpha, color = "MOMs Alpha"), color = "green", fill = "grey")+
+  geom_vline(aes(xintercept=task8.alpha), color = "red")
+
+betas.mom <- ggplot(data=task8.data)+
+  geom_density(aes(x=moms.beta, color = "MOMs Beta"), color = "cyan", fill = "grey")+
+  geom_vline(aes(xintercept=task8.beta), color = "red")
+
+alphas.mle <- ggplot(data=task8.data)+
+  geom_density(aes(x=mles.alpha, color = "MLEs Alpha"), color = "purple", fill = "grey")+
+  geom_vline(aes(xintercept=task8.alpha), color = "red")
+
+betas.mle <- ggplot(data=task8.data)+
+  geom_density(aes(x=mles.beta, color = "MLEs Beta"), color = "orange", fill = "grey")+
+  geom_vline(aes(xintercept=task8.beta), color = "red")
+#combine plots
+task8.plots <- (alphas.mom + alphas.mle) / (betas.mom + betas.mle)
+task8.plots
+
+# bias
+moms.alpha.bias <- mean(task8.data$moms.alpha) - task8.alpha
+mles.alpha.bias <- mean(task8.data$mles.alpha) - task8.alpha
+
+moms.beta.bias <- mean(task8.data$moms.beta) - task8.beta
+mles.beta.bias <- mean(task8.data$mles.beta) - task8.beta
+ 
+# precision
+moms.alpha.precision <- 1/var(task8.data$moms.alpha)
+mles.alpha.precision <- 1/var(task8.data$mles.alpha)
+
+moms.beta.precision <- 1/var(task8.data$moms.beta)
+mles.beta.precision <- 1/var(task8.data$mles.beta)
+
+
+# mse
+moms.alpha.mse <- var(task8.data$moms.alpha) + moms.alpha.bias
+mles.alpha.mse <- var(task8.data$mles.alpha) + mles.alpha.bias
+
+moms.beta.mse <- var(task8.data$moms.beta) + moms.beta.bias
+mles.beta.mse <- var(task8.data$mles.beta) + mles.beta.bias
+
+# summary of stuff
+moms.mles.table <- tibble(parameters = rep(c("Alpha", "Beta"), each = 2),
+                          method = rep(c("MOM", "MLE"), times = 2),
+                          bias = c(moms.alpha.bias, mles.alpha.bias, 
+                                   moms.beta.bias, mles.beta.bias),
+                          precision = c(moms.alpha.precision, mles.alpha.precision,
+                                        moms.beta.precision, mles.beta.precision),
+                          mse = c(moms.alpha.mse, mles.alpha.mse,
+                                  moms.beta.mse, mles.beta.mse))
+
