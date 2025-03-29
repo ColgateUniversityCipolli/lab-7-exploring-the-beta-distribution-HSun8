@@ -22,9 +22,9 @@ task1.plotting <- function(alpha, beta){
                             sd = sqrt((alpha*beta)/((alpha+beta)^2*(alpha+beta+1)))))
   
   # names used to keep consistent with different alpha, beta
-  beta.pdf.name = paste("Beta(", as.character(alpha), ", ", as.character(beta), 
+  beta.pdf.name <-  paste("Beta(", as.character(alpha), ", ", as.character(beta), 
                         ")",  sep = "")
-  norm.pdf.name = paste("Gaussian(", as.character(signif(alpha/(alpha+beta), 3)), 
+  norm.pdf.name <-  paste("Gaussian(", as.character(signif(alpha/(alpha+beta), 3)), 
                         ", ", as.character(signif((sqrt((alpha*beta)/
                         ((alpha+beta)^2*(alpha+beta+1))))^2 ,3)), ")", sep = "")
   
