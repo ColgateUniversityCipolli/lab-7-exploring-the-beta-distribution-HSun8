@@ -436,12 +436,14 @@ MLEs.beta = MLEs$par[2]
 
 deaths.beta.pdf <- tibble(x = seq(0, 0.025, length.out=1000))|>   # generate a grid of points
   mutate(moms.pdf = dbeta(x, shape1 = MOMs.alpha, shape2 = MOMs.beta),
-         mles.pdf = dbeta(x, shape1 = MLEs.alpha, shape2 = MLEs.beta)) # compute the beta PDF
+         mles.pdf = dbeta(x, shape1 = MLEs.alpha, shape2 = MLEs.beta),
+         actual.pdf = dbeta(x, shape1 = 8, shape2 = 950)) # compute the beta PDF
 
 death.prop.plot <- ggplot(death.dat) +
   geom_histogram(aes(x=death.prop, y = after_stat(density), color = "Data"), bins = 40) + 
   geom_line(data=deaths.beta.pdf, aes(x=x, y=moms.pdf, color = "MOM PDF")) +
-  geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF"))
+  geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF")) +
+  geom_line(data = deaths.beta.pdf, aes(x=x, y=actual.pdf, color = "Actual PDF"))
 # death.prop.plot  
 
 # Task 8 
@@ -481,25 +483,25 @@ for(i in 1:1000){
 # plot estimated parameters
 alphas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.alpha, color = "MOMs Alpha"), color = "green", fill = "grey")+
-  ylab("alpha")+
+  xlab("alpha")+
   geom_vline(aes(xintercept=task8.alpha), color = "red") +
   ggtitle("MOMs Alpha")
 
 betas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.beta, color = "MOMs Beta"), color = "cyan", fill = "grey")+
-  ylab("beta")+
+  xlab("beta")+
   geom_vline(aes(xintercept=task8.beta), color = "red")+
   ggtitle("MOMs Beta")
 
 alphas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.alpha, color = "MLEs Alpha"), color = "purple", fill = "grey")+
-  ylab("alpha")+
+  xlab("alpha")+
   geom_vline(aes(xintercept=task8.alpha), color = "red")+
   ggtitle("MLEs Alpha")
 
 betas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.beta, color = "MLEs Beta"), color = "orange", fill = "grey")+
-  ylab("beta")+
+  xlab("beta")+
   geom_vline(aes(xintercept=task8.beta), color = "red")+
   ggtitle("MLEs Beta")
 #combine plots

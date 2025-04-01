@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{bm}
 \usepackage{amsmath} %This allows me to use the align functionality.
                      %If you find yourself trying to replicate
                      %something you found online, ensure you're
@@ -24,12 +25,12 @@
 \begin{document}
 
 \vspace{-1in}
-\title{Lab 7+8 -- MATH 240 -- Computational Statistics}
+\title{Lab 8 -- MATH 240 -- Computational Statistics}
 
 \author{
   Henry Sun \\
   Colgate University  \\
-  Mathematics  \\
+  Department of Mathematics  \\
   {\tt }
 }
 
@@ -475,12 +476,16 @@ MLEs.beta = MLEs$par[2]
 
 deaths.beta.pdf <- tibble(x = seq(0, 0.025, length.out=1000))|>   # generate a grid of points
   mutate(moms.pdf = dbeta(x, shape1 = MOMs.alpha, shape2 = MOMs.beta),
-         mles.pdf = dbeta(x, shape1 = MLEs.alpha, shape2 = MLEs.beta)) # compute the beta PDF
+         mles.pdf = dbeta(x, shape1 = MLEs.alpha, shape2 = MLEs.beta),
+         actual.pdf = dbeta(x, shape1 = 8, shape2 = 950)) # compute the beta PDF
 
 death.prop.plot <- ggplot(death.dat) +
-  geom_histogram(aes(x=death.prop, y = after_stat(density), color = "Data"), bins = 40) + 
+  geom_histogram(aes(x=death.prop, y = after_stat(density), color = "Death Data"), bins = 40) + 
   geom_line(data=deaths.beta.pdf, aes(x=x, y=moms.pdf, color = "MOM PDF")) +
-  geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF"))
+  geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF")) +
+  geom_line(data = deaths.beta.pdf, aes(x=x, y=actual.pdf, color = "Actual PDF")) +
+  xlab("death rate proportions") +
+labs(color = "Legend") 
 # death.prop.plot  
 
 # Task 8 
@@ -520,25 +525,25 @@ for(i in 1:1000){
 # plot estimated parameters
 alphas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.alpha, color = "MOMs Alpha"), color = "green", fill = "grey")+
-  ylab("alpha")+
+  xlab("alpha")+
   geom_vline(aes(xintercept=task8.alpha), color = "red") +
   ggtitle("MOMs Alpha")
 
 betas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.beta, color = "MOMs Beta"), color = "cyan", fill = "grey")+
-  ylab("beta")+
+  xlab("beta")+
   geom_vline(aes(xintercept=task8.beta), color = "red")+
   ggtitle("MOMs Beta")
 
 alphas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.alpha, color = "MLEs Alpha"), color = "purple", fill = "grey")+
-  ylab("alpha")+
+  xlab("alpha")+
   geom_vline(aes(xintercept=task8.alpha), color = "red")+
   ggtitle("MLEs Alpha")
 
 betas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.beta, color = "MLEs Beta"), color = "orange", fill = "grey")+
-  ylab("beta")+
+  xlab("beta")+
   geom_vline(aes(xintercept=task8.beta), color = "red")+
   ggtitle("MLEs Beta")
 #combine plots
@@ -580,25 +585,21 @@ moms.mles.table <- tibble(parameters = rep(c("Alpha", "Beta"), each = 2),
 # xtable(moms.mles.table)
 
 @
-\begin{multicols}{2}
+\begin{multicols}{2}\raggedcolumns
 \begin{abstract}
-This document provides a basic template for the 2-page labs we will complete each week. Here, briefly summarize what you did and why it might be helpful. Provide all the top-line conclusions, but avoid providing \emph{all} the details. Results should be limited to ``we show X, Y, and Z."
+In this lab, we explored the beta distribution in great detail. We discussed probability functions, parameters, and properties of the beta distribution. We then use two point techniques, the method of moments (MOM) and the maximum likelihood (MLE) to help us model country death rates. Overall, we found that the estimated parameters from MLE we more accurate than MOM compared to actual parameters suggested. 
 \end{abstract}
 
-\noindent \textbf{Keywords:} What topics does the lab cover concerning class? List 3-4 key terms here, separated by semicolons.
+\noindent \textbf{Keywords:} Point estimation; continuous probability distributions; parameters
 
 \section{Introduction}
-In this lab, we explored the beta distribution in great detail. The beta distribution is a continuous distribution, modeling the
-Provide an overarching summary of what you're talking about. In this section, you introduce the idea to the reader, and your goal is to pull them in. What's the mystery you aim to solve?
-
-You want to provide enough background to understand the context of the work. Specifically, what is the question you are addressing? If it applies, describe what information currently exists about this problem, including citations, and explain how the question you're answering complements this work.
-
-Provide a roadmap of the structure of the paper. 
+The beta distribution is a continuous distribution used to model a random variable $X$ ranging from $0$ to $1$ (the distribution's support), making it particularly useful for modeling proportions, probabilities, and rates. For some data, like the example we will look at later in the lab, data must be transformed to fit the support. The beta distribution is remarkably flexible in its shape; it can be right-skewed, left-skewed, or symmetric. \\
+\indent Section $2$ provides a more in-depth overview of the beta distribution, including the Probability Density Function, support, and parameters. Section $3$ discusses the properties of the beta distribution using four specific cases. Sections $4$ and $5$ contextualize point estimators (Method of Moments and Maximum Likelihood) and explores the beta distribution further with an example of real-life data. 
 
 \section{Density Functions and Parameters}
 As the beta distribution is a continuous distribution, it has a probability density function (PDF) and a cumulative density function (CDF). It takes two shape parameters, $\alpha$ and $\beta$, which are both positive numbers. In \texttt{R}, the parameters for $\alpha$ and $\beta$ are \texttt{shape1} and \texttt{shape2}. The beta distribution's probability density function is given as:
  \[f_X(x|\alpha, \beta) = \frac{\Gamma(\alpha + \beta)}{\Gamma\alpha\Gamma\beta} x^{\alpha-1}(1-x)^{\beta-1}I(x \in [0,1]).\]
-For the beta distribution, $I(x \in [0,1]) = 1$ when $x \in [0,1]$ and $0$ otherwise, as the support of a random variable $X$ is $[0,1]$ in the beta distribution. For some data, like the example we will look at later in the lab, data must be transformed to fit the support. 
+\indent For the beta distribution, $I(x \in [0,1]) = 1$ when $x \in [0,1]$ and $0$ otherwise, as the support of a random variable $X$ is $[0,1]$ in the beta distribution. 
 
 \section{Properties and Statistics}
 Various properties of the beta distribution are based on the shape parameters of the beta distribution. The beta distribution is very flexible with regards to its shape. The various statistics, such as the mean, variance, skewness, and excess kurtosis can be written in terms of $\alpha$ and $\beta$: 
@@ -611,7 +612,8 @@ skew(X) = \frac{2(\beta - \alpha)\sqrt{\alpha + \beta + 1}}{(\alpha + \beta + 2)
 \begin{flushright}
 (The Excess Kurtosis)
 \end{flushright}
-It's key to note that in \texttt{R}, \verb|kurt()| calculates the excess kurtosis and not the kurtosis. Instead, kurtosis = excess kurtosis + 3, or \verb|kurt(X) + 3|. \\
+
+\indent It's key to note that in \texttt{R}, \verb|kurt()| calculates the excess kurtosis and not the kurtosis. Instead, kurtosis = excess kurtosis + 3, or \verb|kurt(X) + 3|. \\
 \indent However, by computing the moments of the beta function, we write each statistic as a combination of various $k$th centered and uncentered moments. 
 \begin{align*}
  \mu_X = E(X) \tag{The Mean}\\
@@ -619,54 +621,75 @@ It's key to note that in \texttt{R}, \verb|kurt()| calculates the excess kurtosi
  skew(X) = \frac{E[(X - \mu_X)^3]}{E[(X-\mu_X)^2]^{3/2}} \tag{The Skewness}\\
  kurt(X) = \frac{E[(X-\mu_X)^4]}{E[(X-\mu_X)^2]^2} - 3 \tag{The Excess Kurtsosis}
 \end{align*}
-For the beta distribution, the $k$th uncentered and centered moments are
+\indent For the beta distribution, the $k$th uncentered and centered moments are
 \[E(X^{k}) = \int_{\chi}^{} x^{k}f_x(x) \,dx \]
 \begin{center}
 and 
 \end{center}
 \[E((X-\mu_X)^{k}) = \int_{\chi}^{} (x-\mu_X)^{k}f_x(x) \,dx \]
-respectively. For the purposes of this lab, we wrote a function \verb|beta.moment(alpha, beta, k, centered)| to help us compute the population-level characteristics using this moments. \textbf{maybe add code snippet here} \\
+respectively. For the purposes of this lab, we wrote a function \verb|beta.moment(alpha, beta, k, centered)| to help us compute the population-level characteristics using this moments. \\
 
-Due to the beta distribution's flexiblity, it can take on numerous different shapes, can be right-skewed, platykurtic, etc. Below is a data summary of this. 
-\textbf{reference a figure showing this.}
+\indent Due to the beta distribution's flexibility, it can take on numerous different shapes. Below is a table (\autoref{table1}) showing various different summary statistics for four different cases of the beta distribution. Additionally, the actual shape of these different cases can be found in the appendix (\autoref{plot1}). 
 
-\subsection{Intro Subsection}
-You might need/want to discuss the topics in subsections. Or, you may have multiple questions.
+\begin{Figure}
+\centering
+\begin{tabular}{rrrrrrr}
+  \hline
+  alpha & beta & mean & variance & skewness & e.kurtosis \\ 
+  \hline
+  2.00 & 5.00 & 0.29 & 0.03 & 0.60 & -0.12 \\ 
+  5.00 & 5.00 & 0.50 & 0.02 & 0.00 & -0.46 \\ 
+  5.00 & 2.00 & 0.71 & 0.03 & -0.60 & -0.12 \\ 
+  0.50 & 0.50 & 0.50 & 0.12 & 0.00 & -1.50 \\ 
+   \hline
+\end{tabular}
+\captionof{table}{Table showing various summary statistics for different shape parameters, $\alpha$ and $\beta$. Notice the large variation in the summary statistics for different shape parameters. \texttt{e.kurtosis} means excess kurtosis.}
+\label{table1}
+\end{Figure}
 
-% \begin{Figure}
-% \includegraphics{screenshot}
-% \end{Figure}
+\indent As with many other distributions, as the sample size (samples were generated from each known beta distribution) increases, summary statistics calculated on each sample converges towards the true population-level characteristics. A plot of samples (\autoref{plot3}) generated from sizes $0$ to $500$ from the beta($\alpha = 2$, $\beta = 5$) distribution show this property. The cumulative statistics \citep{cumstats} of samples were chaotic in smaller sample sizes, but stabilized at sample size was increased.\\ 
+\indent The sampling distributions for summary statistics from the original beta distribution also show an approximately Gaussian distribution (\autoref{plot4}), with the mean of the sampling distributions being approximately the population-level summary statistics.
 
-\section{Methods}
-Describe the data you are working with, if applicable. Describe the specific process you will follow to answer the question at hand. This does not mean you should write something like this.
-\begin{quote}
-\textit{I did this and then I did that and then I did this other thing and then..., and then..., and then...}
-\end{quote}
-Instead, it should provide a clear and concise narrative that flows from the problem specification in the Introduction to how you will approach answering it. This is where I would expect to see some citations for \texttt{R} packages you will use to conduct the statistical analysis reported in the Results section.
+\section{Estimators}
+In class, we discussed two point estimators that help us find the approximate estimates for unknown parameters, $\theta$ in various distributions, the Method of Moments (MOM) and Maximum Likelihood (MLE). In the beta distribution, $\theta$ are the shape parameters $\alpha$ and $\beta$. \\
+\indent In many cases, the distribution a set of data follows is unknown, and point estimators can help us come up with a good approximation of the parameters for a distribution that fits the data. \\
+\indent The Method of Moments works by equating the first $k$ uncentered population moments with the first $k$ sample moments (assuming that the sample size is large enough where they are approximately equal), setting up an approximate systems of equation to solve for each parameter. In \texttt{R}, we accomplished this by using the \verb|nleqslv()| \citep{nleqslv} to obtain $\alpha$ and $\beta$. For the beta distribution, the first two uncentered population moments are: 
+\[E(X) = \frac{\alpha}{\alpha + \beta}\]
+\[E(X^2) = \frac{(\alpha + 1)\alpha}{(\alpha + \beta + 1)(\alpha + \beta)}\]
+\indent Maximum Likelihood works by first defining the likelihood function: 
+\[L(\bm{\theta} | \mathbf{x}) = \prod_{i=1}^{n} f_X(x_i | \bm{\theta})\]
+The likelihood function is asking the question: What is the likelihood of observing $\mathbf{x}$? However, in most situations, it is more practical and useful to work with the log likelihood function. For Maximum Likelihood, we are essentially trying to find which parameters maximize the probability of observing $\mathbf{x}$. This basically becomes an optimization problem that can be solved with calculus. In \texttt{R}, this is accomplished by using the \verb|optim()| function. \\
+\indent We will apply both MOM and MLE in the Example section, using actual data. 
 
+\section{Example: World Death Rates}
+\cite{labdata} suggests that country death rates worldwide can be modeled with a beta distribution, specifically with $\alpha = 8$ and $\beta = 950$. Both MOM and MLE will provide us with slightly different parameters, so we must analyze bias, precision, and mean squared error (MSE) in order to determine which one gives us a closer estimate to the actual parameters. The data also had to be modified, changing the death rate so it would fit the support of the beta distribution.
+\[bias = E(\hat{\theta}) - \theta\]
+\[precision = \frac{1}{var(\hat{\theta})}\]
+\[MSE = var(\hat{\theta}) + (E(\hat{\theta}) - \theta)^2\]
 
-\subsection{Methods Subsection}
-Much like the Introduction, subsections can be helpful for the Methods section. For example, you might describe data collection and the statistical analyses of the collected data in different subsections. Or, you may have different questions that require distinct methods. 
+\indent The summaries of these calculations for each method and shape parameter can be found in the table below (\autoref{table3}). Overall, it appears that MLE seems to be the better estimator for this data than MOM. The bias and MSE for the MLE parameters is smaller than MOM, and the precision is higher. However, it's still quite hard to notice the difference between the actual PDF, MLE PDF, and MOM PDF, as shown in \autoref{plot6}. Still, the MLE PDF seems to be marginally better fit for the data. 
 
-\section{Results}
-Tie together the Introduction -- where you introduce the problem at hand -- and the methods --  what you propose to do to answer the question. Present your data, the results of your analyses, and how each reported aspect contributes to answering the question. This section should include table(s), statistic(s), and graphical displays. Make sure to put the results in a sensible order and that each result contributes a logical and developed solution. It should not just be a list. Avoid being repetitive. 
-
-\subsection{Results Subsection}
-Subsections can be helpful for the Results section, too. This can be particularly helpful if you have different questions to answer. 
-
-
-\section{Discussion}
- You should objectively evaluate the evidence you found in the data. Do not embellish or wish-terpet (my made-up phase for making an interpretation you, or the researcher, wants to be true without the data \emph{actually} supporting it). Connect your findings to the existing information you provided in the Introduction.
-
-Finally, provide some concluding remarks that tie together the entire paper. Think of the last part of the results as abstract-like. Tell the reader what they just consumed -- what's the takeaway message?
+\begin{Figure}
+\centering
+\begin{tabular}{rllrrr}
+  \hline
+ parameters & method & bias & precision & mse \\ 
+  \hline
+    Alpha & MOM & 0.08 & 1.83 & 0.63 \\ 
+    Alpha & MLE & 0.07 & 2.13 & 0.54 \\ 
+    Beta & MOM & 10.29 & 0.00 & 8192.93 \\ 
+    Beta & MLE & 9.11 & 0.00 & 7058.82 \\ 
+   \hline
+\end{tabular}
+\captionof{table}{The bias, precision, and MSE for $\alpha$ and $\beta$ with MOM and MLE. Due to the exceedingly small values for $\beta$ precision, it appears as $0$ on the table.}
+\label{table3}
+\end{Figure}
+\indent Just like how the sampling distribution for the summary statistics is approximately Gaussian, the sampling distribution of the shape parameters ,$\alpha$ and $\beta$, follow an approximately Gaussian distribution (\autoref{plot5}), with the actual parameter (shown as a red vertical line), regardless if we are using MOM and MLE. Samples were generated from the actual parameters for the beta distribution fitting the death rates, $\alpha = 8$ and $\beta = 950$. Both estimations are not exact, but can be considered close enough. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{2em}
-
-\noindent\textbf{Bibliography:} Note that when you add citations to your bib.bib file \emph{and}
-you cite them in your document, the bibliography section will automatically populate here.
 
 \begin{tiny}
 \bibliography{bib}
@@ -688,54 +711,13 @@ you cite them in your document, the bibliography section will automatically popu
  \label{plot1} %we can now reference plot1
  \end{center}
  \end{figure}
- \begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrrr}
-  \hline
-  alpha & beta & mean & variance & skewness & e.kurtosis \\ 
-  \hline
-  2.00 & 5.00 & 0.29 & 0.03 & 0.60 & -0.12 \\ 
-  5.00 & 5.00 & 0.50 & 0.02 & 0.00 & -0.46 \\ 
-  5.00 & 2.00 & 0.71 & 0.03 & -0.60 & -0.12 \\ 
-  0.50 & 0.50 & 0.50 & 0.12 & 0.00 & -1.50 \\ 
-   \hline
-\end{tabular}
-\caption{task 1 table}
-\label{table1}
-\end{table}
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrrr}
-  \hline
-  alpha & beta & mean & variance & skewness & e.kurtosis \\ 
-  \hline
-  2.00 & 5.00 & 0.29 & 0.03 & 0.57 & -0.22 \\ 
-  5.00 & 5.00 & 0.50 & 0.02 & -0.06 & -0.57 \\ 
-  5.00 & 2.00 & 0.71 & 0.03 & -0.57 & -0.22 \\ 
-  0.50 & 0.50 & 0.51 & 0.13 & -0.02 & -1.50 \\ 
-   \hline
-\end{tabular}
-\caption{task 3 table}
-\label{table2}
-\end{table}
-
-\begin{figure}[H]
- \begin{center}
- <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(10,5)>>=
- task3.histograms + theme(legend.position = "bottom")
- @
- \caption{task 3 histograms}
- \label{plot2} %we can now reference plot1
- \end{center}
- \end{figure}
 
 \begin{figure}[H]
  \begin{center}
  <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(5,3.5)>>=
  cum.plots
  @
- \caption{cumstats plots}
+ \caption{Plots showing the cumulative statistics, showing how statistics change as sample size increases from $0$ to $500$.}
  \label{plot3} %we can now reference plot1
  \end{center}
  \end{figure}
@@ -745,35 +727,29 @@ you cite them in your document, the bibliography section will automatically popu
  <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(10,5)>>=
  stats.dist + theme(legend.position = "bottom")
  @
- \caption{stats samplings dist plots}
+ \caption{Sampling Distributions for various summary statistics. The samples were generated from the beta($\alpha = 2$, $\beta = 5$) distribution.}
  \label{plot4} %we can now reference plot1
  \end{center}
  \end{figure}
  
- \begin{table}[ht]
-\centering
-\begin{tabular}{rllrrr}
-  \hline
- parameters & method & bias & precision & mse \\ 
-  \hline
-    Alpha & MOM & 0.08 & 1.83 & 0.63 \\ 
-    Alpha & MLE & 0.07 & 2.13 & 0.54 \\ 
-    Beta & MOM & 10.29 & 0.00 & 8192.93 \\ 
-    Beta & MLE & 9.11 & 0.00 & 7058.82 \\ 
-   \hline
-\end{tabular}
-\caption{mles moms}
-\label{table3}
 
 \begin{figure}[H]
  \begin{center}
  <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(10,5)>>=
  task8.plots
  @
- \caption{moms mles}
+ \caption{Sampling Distributions of the shape parmeters $\alpha$ and $\beta$, with resamples generated from the beta($\alpha = 8$, $\beta = 950$) distribution.}
  \label{plot5} %we can now reference plot1
  \end{center}
  \end{figure}
 
-\end{table}
+\begin{figure}[H]
+ \begin{center}
+ <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(10,5)>>=
+ death.prop.plot
+ @
+ \caption{Death Rates data plotted alongside the actual PDF proposed, and the PDFs from the estimated shape parameters obtained from MOM and MLE. The vertical shows the actual proposed shape parameters.}
+ \label{plot6} %we can now reference plot1
+ \end{center}
+ \end{figure}
 \end{document}
