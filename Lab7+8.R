@@ -8,6 +8,7 @@ library(e1071) # kurtosis and skewness (task 3)
 library(cumstats) # task 4
 library(patchwork) # combine plots
 library(nleqslv) # MOM + MLE
+library(xtable) # put into report
 
 ################################################################################
 # Task 1
@@ -31,12 +32,12 @@ task1.plotting <- function(alpha, beta){
 
   task1.plot <- ggplot(data= fig.dat)+                                     # specify data
       geom_line(aes(x=x, y=beta.pdf, color=beta.pdf.name)) +               # plot beta dist
-      geom_line(aes(x=x, y=norm.pdf, color= norm.pdf.name)) +              # plot gaussian dist
+      #geom_line(aes(x=x, y=norm.pdf, color= norm.pdf.name)) +              # plot gaussian dist
       geom_hline(yintercept=0)+                                            # plot x axis
       theme_bw()+                                                          # change theme
       xlab("x")+                                                           # label x axis
       ylab("Density")+                                                     # label y axis
-      scale_color_manual("", values = c("black", "grey"))+                 # change colors
+      scale_color_manual("", values = c("darkred", "skyblue"))+                 # change colors
       theme(legend.position = "bottom")                                    # move legend to bottom
   task1.plot
 }
@@ -74,7 +75,7 @@ case4.data = task1.summarize(0.5,0.5)
 
 # create table summarizing data from all cases
 task1.summary = rbind(case1.data, case2.data, case3.data, case4.data)
-
+# xtable(task1.summary)
 # create plots (using patchwork) to summarize data from all cases
 task1.plots <- (case1.plot / case2.plot) | (case3.plot / case4.plot)
 
@@ -158,6 +159,8 @@ task3.numsummary <- function(alpha, beta){
                         shape1 = alpha,   # alpha parameter
                         shape2 = beta)    # beta parameter
   task3.numericalsummary = summarize(tibble(sample.data = beta.sample), 
+                                      alpha = alpha, 
+                                      beta = beta,
                                       mean = mean(sample.data),
                                       variance = var(sample.data),
                                       skewness = skewness(sample.data),
@@ -184,11 +187,14 @@ task3.histogram <- function(alpha, beta){
   beta.pdf.name = paste("Beta(", as.character(alpha), ", ", as.character(beta), 
                         ")",  sep = "")
   histogram <- ggplot(tibble(sample.data = beta.sample), aes(x=sample.data))+
-    geom_histogram(aes(y=after_stat(density), color = "Sample Data Histogram"))+
-    geom_density(aes(color = "Sample Data Density"), key_glyph = draw_key_path)+
-    geom_line(data = fig.dat, aes(x = x, y = beta.pdf, color = beta.pdf.name))+
+    geom_histogram(aes(y=after_stat(density), color = "Sample Histogram"),
+                   breaks = seq(0,1, .05))+
+    geom_density(aes(color = "Sample PDF"), key_glyph = draw_key_path)+
+    geom_line(data = fig.dat, aes(x = x, y = beta.pdf, color = "Population PDF"))+
     xlab("x")+
-    ylab("Density")
+    ylab("Density")+
+    labs(color = "Legend")+
+    ggtitle(beta.pdf.name)
   histogram
 }
 
@@ -205,8 +211,13 @@ case3.histogram = task3.histogram(5,2)
 case4.histogram = task3.histogram(0.5,0.5)
 
 # create histograms using patchwork
-task3.histograms <- case1.histogram / case2.histogram | 
-                    case3.histogram / case4.histogram
+task3.histograms <- (case1.histogram / case2.histogram | 
+                     case3.histogram / case4.histogram)+ 
+                     plot_layout(guides = "collect") 
+  
+
+task3.numsum <- rbind(case1.sample, case2.sample, case3.sample, case4.sample)
+#xtable(task3.numsum)
 
 ################################################################################
 # Task 4 
@@ -272,16 +283,24 @@ for (i in 2:50){
                            kurtosis=cumkurt((beta.sample.loop)))
   # update cum mean plot
   cum.mean.plot <- cum.mean.plot + 
-    geom_line(data = beta.cumstats.f, aes(x=n, y=mean), color = i)
+    geom_line(data = beta.cumstats.f, aes(x=n, y=mean), color = i)+
+    xlab("n=sample size")+
+    ggtitle("Cumulative Mean")
   # update cum var plot
   cum.var.plot <- cum.var.plot + 
-    geom_line(data = beta.cumstats.f, aes(x=n, y=variance), color = i)
+    geom_line(data = beta.cumstats.f, aes(x=n, y=variance), color = i)+
+    xlab("n=sample size")+
+    ggtitle("Cumulative Variance")
   # update cum skew plot
   cum.skew.plot <- cum.skew.plot + 
-    geom_line(data = beta.cumstats.f, aes(x=n, y=skewness), color = i)
+    geom_line(data = beta.cumstats.f, aes(x=n, y=skewness), color = i)+
+    xlab("n=sample size")+
+    ggtitle("Cumulative Skewness")
   # update cum kurtosis plot
   cum.kurt.plot <- cum.kurt.plot + 
-    geom_line(data = beta.cumstats.f, aes(x=n, y=kurtosis), color = i)
+    geom_line(data = beta.cumstats.f, aes(x=n, y=kurtosis), color = i)+
+    xlab("n=sample size")+
+    ggtitle("Cumulative Kurtosis")
   
 }
 
@@ -321,31 +340,41 @@ for (i in 1:1000){
 # histogram + density for mean
 mean.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = mean, y=after_stat(density), 
-                     color = "Mean Distribution Histogram"))+
-  geom_density(aes(x=mean, color = "Mean Density"), 
-               key_glyph = draw_key_path)
+                     color = "Sample Histogram"), bins = 20)+
+  geom_density(aes(x=mean, color = "Sample PDF"), 
+               key_glyph = draw_key_path)+
+  labs(color = "Legend")+
+  ggtitle("Sample Mean")
 # histogram + density for variance
 variance.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = variance, y=after_stat(density),
-                     color = "Variance Distribution Histogram"))+
-  geom_density(aes(x=variance, color = "Variance Density"), 
-               key_glyph = draw_key_path)
+                     color = "Sample Histogram"), bins = 20)+
+  geom_density(aes(x=variance, color = "Sample PDF"), 
+               key_glyph = draw_key_path)+
+  labs(color = "Legend")+
+  ggtitle("Sample Variances")
 # histogram + density for skewness
 skewness.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = skewness, y=after_stat(density),
-                     color = "Skewness Distribution Histogram"))+
-  geom_density(aes(x=skewness, color = "Skewness Density"), 
-               key_glyph = draw_key_path)
+                     color = "Sample Histogram"), bins = 20)+
+  geom_density(aes(x=skewness, color = "Sample PDF"), 
+               key_glyph = draw_key_path)+
+  labs(color = "Legend")+
+  ggtitle("Sample Skewnesses")
 # histogram + density for kurtosis
 kurtosis.dist <- ggplot(stats.task5)+
   geom_histogram(aes(x = kurtosis, y=after_stat(density),
-                     color = "Kurtosis Distribution Histogram"))+
-  geom_density(aes(x=kurtosis, color = "Kurtosis Density"), 
-               key_glyph = draw_key_path)
+                     color = "Sample Histogram"), bins = 20)+
+  geom_density(aes(x=kurtosis, color = "Sample PDF"), 
+               key_glyph = draw_key_path)+
+  labs(color = "Legend")+
+  ggtitle("Sample Kurtosises")
 
 # combine plots
-stats.dist <- mean.dist / variance.dist | skewness.dist / kurtosis.dist
-stats.dist
+stats.dist <- (mean.dist / variance.dist | skewness.dist / kurtosis.dist) +
+  plot_layout(guides = "collect")
+  
+# stats.dist
 
 # looks like normal distribution.... 
 
@@ -413,7 +442,7 @@ death.prop.plot <- ggplot(death.dat) +
   geom_histogram(aes(x=death.prop, y = after_stat(density), color = "Data"), bins = 40) + 
   geom_line(data=deaths.beta.pdf, aes(x=x, y=moms.pdf, color = "MOM PDF")) +
   geom_line(data=deaths.beta.pdf, aes(x=x, y=mles.pdf, color = "MLE PDF"))
-death.prop.plot  
+# death.prop.plot  
 
 # Task 8 
 # which estimators should we use
@@ -452,22 +481,31 @@ for(i in 1:1000){
 # plot estimated parameters
 alphas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.alpha, color = "MOMs Alpha"), color = "green", fill = "grey")+
-  geom_vline(aes(xintercept=task8.alpha), color = "red")
+  ylab("alpha")+
+  geom_vline(aes(xintercept=task8.alpha), color = "red") +
+  ggtitle("MOMs Alpha")
 
 betas.mom <- ggplot(data=task8.data)+
   geom_density(aes(x=moms.beta, color = "MOMs Beta"), color = "cyan", fill = "grey")+
-  geom_vline(aes(xintercept=task8.beta), color = "red")
+  ylab("beta")+
+  geom_vline(aes(xintercept=task8.beta), color = "red")+
+  ggtitle("MOMs Beta")
 
 alphas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.alpha, color = "MLEs Alpha"), color = "purple", fill = "grey")+
-  geom_vline(aes(xintercept=task8.alpha), color = "red")
+  ylab("alpha")+
+  geom_vline(aes(xintercept=task8.alpha), color = "red")+
+  ggtitle("MLEs Alpha")
 
 betas.mle <- ggplot(data=task8.data)+
   geom_density(aes(x=mles.beta, color = "MLEs Beta"), color = "orange", fill = "grey")+
-  geom_vline(aes(xintercept=task8.beta), color = "red")
+  ylab("beta")+
+  geom_vline(aes(xintercept=task8.beta), color = "red")+
+  ggtitle("MLEs Beta")
 #combine plots
-task8.plots <- (alphas.mom + alphas.mle) / (betas.mom + betas.mle)
-task8.plots
+# task 8 plots
+task8.plots <- (alphas.mom + alphas.mle) / (betas.mom + betas.mle) 
+
 
 # bias
 moms.alpha.bias <- mean(task8.data$moms.alpha) - task8.alpha
@@ -500,4 +538,4 @@ moms.mles.table <- tibble(parameters = rep(c("Alpha", "Beta"), each = 2),
                                         moms.beta.precision, mles.beta.precision),
                           mse = c(moms.alpha.mse, mles.alpha.mse,
                                   moms.beta.mse, mles.beta.mse))
-
+# xtable(moms.mles.table)

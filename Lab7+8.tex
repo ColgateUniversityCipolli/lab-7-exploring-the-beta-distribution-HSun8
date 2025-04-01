@@ -104,21 +104,39 @@ You want to provide enough background to understand the context of the work. Spe
 Provide a roadmap of the structure of the paper. 
 
 \section{Density Functions and Parameters}
-As the beta distribution is a continuous distribution, it has a probability density function (PDF) and a cumulative density function (CDF). It takes two shape parameters, $\alpha$ and $\beta$, The beta distribution's probability density function is given as:
+As the beta distribution is a continuous distribution, it has a probability density function (PDF) and a cumulative density function (CDF). It takes two shape parameters, $\alpha$ and $\beta$, which are both positive numbers. In \texttt{R}, the parameters for $\alpha$ and $\beta$ are \texttt{shape1} and \texttt{shape2}. The beta distribution's probability density function is given as:
  \[f_X(x|\alpha, \beta) = \frac{\Gamma(\alpha + \beta)}{\Gamma\alpha\Gamma\beta} x^{\alpha-1}(1-x)^{\beta-1}I(x \in [0,1]).\]
-For the beta distribution, $I(x \in [0,1]) = 1$ when $x \in [0,1]$ and $0$ otherwise, as the support of a random variable $X$ is $[0,1]$ in the beta distribution.
+For the beta distribution, $I(x \in [0,1]) = 1$ when $x \in [0,1]$ and $0$ otherwise, as the support of a random variable $X$ is $[0,1]$ in the beta distribution. For some data, like the example we will look at later in the lab, data must be transformed to fit the support. 
 
-\section{Properties}
+\section{Properties and Statistics}
 Various properties of the beta distribution are based on the shape parameters of the beta distribution. The beta distribution is very flexible with regards to its shape. The various statistics, such as the mean, variance, skewness, and excess kurtosis can be written in terms of $\alpha$ and $\beta$: 
- \[mean(X) = \frac{\alpha}{\alpha + \beta} \] 
- \[var(X) = \frac{\alpha\beta}{(\alpha + \beta)^2(\alpha + \beta + 1)}\] 
- \[skew(X) = \frac{2(\beta - \alpha)\sqrt{\alpha + \beta + 1}}{(\alpha + \beta + 2)\sqrt{\alpha\beta}}\] 
- \[kurt(X) = \frac{6[(\alpha - \beta)^2(\alpha + \beta + 1) - \alpha\beta(\alpha + \beta + 2)]}{\alpha\beta(\alpha + \beta + 2)(\alpha + \beta + 3)}\] 
-It's key to note that in \texttt{R}, \verb|kurt()| calculates the excess kurtosis and not the kurtosis. Instead, kurtosis = \verb|kurt(X) + 3|. Due to the beta distribution's flexiblity, it can take on numerous different shapes, can be right-skewed, platykurtic, etc. \textbf{reference a figure showing this.}
-\indent However, by computing the moments of the beta function, we write each statistic as a combination of various $k$th centered and uncentered moments (it's also just a lot easier to type these out than above). \textbf{provide some more infromation on the moments...}
-\[mean(X) = \mu_X = E(X)\]
-\[var(x) = \sigma^2_X = E[(X-\mu_X)^2\]
+ \begin{align*}
+ E(X) = \frac{\alpha}{\alpha + \beta} \tag{The Mean}\\
+var(X) = \frac{\alpha\beta}{(\alpha + \beta)^2(\alpha + \beta + 1)} \tag{The Variance} \\
+skew(X) = \frac{2(\beta - \alpha)\sqrt{\alpha + \beta + 1}}{(\alpha + \beta + 2)\sqrt{\alpha\beta}} \tag{The Skewness}
+ \end{align*}
+ \[kurt(X) = \frac{6[(\alpha - \beta)^2(\alpha + \beta + 1) - \alpha\beta(\alpha + \beta + 2)]}{\alpha\beta(\alpha + \beta + 2)(\alpha + \beta + 3)}\]
+\begin{flushright}
+(The Excess Kurtosis)
+\end{flushright}
+It's key to note that in \texttt{R}, \verb|kurt()| calculates the excess kurtosis and not the kurtosis. Instead, kurtosis = excess kurtosis + 3, or \verb|kurt(X) + 3|. \\
+\indent However, by computing the moments of the beta function, we write each statistic as a combination of various $k$th centered and uncentered moments. 
+\begin{align*}
+ \mu_X = E(X) \tag{The Mean}\\
+ var(X) = \sigma^2_X = E[(X-\mu_X)]^2 \tag{The Variance}\\
+ skew(X) = \frac{E[(X - \mu_X)^3]}{E[(X-\mu_X)^2]^{3/2}} \tag{The Skewness}\\
+ kurt(X) = \frac{E[(X-\mu_X)^4]}{E[(X-\mu_X)^2]^2} - 3 \tag{The Excess Kurtsosis}
+\end{align*}
+For the beta distribution, the $k$th uncentered and centered moments are
+\[E(X^{k}) = \int_{\chi}^{} x^{k}f_x(x) \,dx \]
+\begin{center}
+and 
+\end{center}
+\[E((X-\mu_X)^{k}) = \int_{\chi}^{} (x-\mu_X)^{k}f_x(x) \,dx \]
+respectively. For the purposes of this lab, we wrote a function \verb|beta.moment(alpha, beta, k, centered)| to help us compute the population-level characteristics using this moments. \textbf{maybe add code snippet here} \\
 
+Due to the beta distribution's flexiblity, it can take on numerous different shapes, can be right-skewed, platykurtic, etc. Below is a data summary of this. 
+\textbf{reference a figure showing this.}
 
 \subsection{Intro Subsection}
 You might need/want to discuss the topics in subsections. Or, you may have multiple questions.
@@ -169,7 +187,106 @@ you cite them in your document, the bibliography section will automatically popu
 \newpage
 \onecolumn
 \section{Appendix}
+ \begin{figure}[H]
+ \begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-1} 
+\end{knitrout}
+ \caption{Plotting of various different beta PDFs.}
+ \label{plot1} %we can now reference plot1
+ \end{center}
+ \end{figure}
+ \begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrr}
+  \hline
+  alpha & beta & mean & variance & skewness & e.kurtosis \\ 
+  \hline
+  2.00 & 5.00 & 0.29 & 0.03 & 0.60 & -0.12 \\ 
+  5.00 & 5.00 & 0.50 & 0.02 & 0.00 & -0.46 \\ 
+  5.00 & 2.00 & 0.71 & 0.03 & -0.60 & -0.12 \\ 
+  0.50 & 0.50 & 0.50 & 0.12 & 0.00 & -1.50 \\ 
+   \hline
+\end{tabular}
+\caption{task 1 table}
+\label{table1}
+\end{table}
 
-If you have anything extra, you can add it here in the appendix. This can include images or tables that don't work well in the two-page setup, code snippets you might want to share, etc.
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrr}
+  \hline
+  alpha & beta & mean & variance & skewness & e.kurtosis \\ 
+  \hline
+  2.00 & 5.00 & 0.29 & 0.03 & 0.57 & -0.22 \\ 
+  5.00 & 5.00 & 0.50 & 0.02 & -0.06 & -0.57 \\ 
+  5.00 & 2.00 & 0.71 & 0.03 & -0.57 & -0.22 \\ 
+  0.50 & 0.50 & 0.51 & 0.13 & -0.02 & -1.50 \\ 
+   \hline
+\end{tabular}
+\caption{task 3 table}
+\label{table2}
+\end{table}
 
+\begin{figure}[H]
+ \begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-3-1} 
+\end{knitrout}
+ \caption{task 3 histograms}
+ \label{plot2} %we can now reference plot1
+ \end{center}
+ \end{figure}
+
+\begin{figure}[H]
+ \begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-4-1} 
+\end{knitrout}
+ \caption{cumstats plots}
+ \label{plot3} %we can now reference plot1
+ \end{center}
+ \end{figure}
+
+\begin{figure}[H]
+ \begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-1} 
+\end{knitrout}
+ \caption{stats samplings dist plots}
+ \label{plot4} %we can now reference plot1
+ \end{center}
+ \end{figure}
+ 
+ \begin{table}[ht]
+\centering
+\begin{tabular}{rllrrr}
+  \hline
+ parameters & method & bias & precision & mse \\ 
+  \hline
+    Alpha & MOM & 0.08 & 1.83 & 0.63 \\ 
+    Alpha & MLE & 0.07 & 2.13 & 0.54 \\ 
+    Beta & MOM & 10.29 & 0.00 & 8192.93 \\ 
+    Beta & MLE & 9.11 & 0.00 & 7058.82 \\ 
+   \hline
+\end{tabular}
+\caption{mles moms}
+\label{table3}
+
+\begin{figure}[H]
+ \begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-6-1} 
+\end{knitrout}
+ \caption{moms mles}
+ \label{plot5} %we can now reference plot1
+ \end{center}
+ \end{figure}
+
+\end{table}
 \end{document}
